@@ -1,0 +1,13 @@
+[Unit]
+Description=Local Infra (nginx + n8n)
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/home/hackartist/data/devel/github.com/hackartists/local-infra
+ExecStart=/usr/bin/docker compose run --rm certbot renew && /usr/bin/docker compose exec nginx nginx -s reload
+
+[Install]
+WantedBy=multi-user.target
