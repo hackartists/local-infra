@@ -4,7 +4,7 @@ set -e
 COMPOSE="docker compose"
 DOMAIN="pr.ratel.foundation"
 WILDCARD="*.$DOMAIN"
-EMAIL="${CERTBOT_EMAIL:-admin@hackartist.io}"
+EMAIL="${CERTBOT_EMAIL:-admin@biyard.co}"
 CERT_PATH="/etc/letsencrypt/live/$DOMAIN/fullchain.pem"
 
 echo "=== Wildcard Certificate Init for $WILDCARD ==="
