@@ -9,4 +9,4 @@ cd $WORKING_DIR/ratel
 
 git pull
 
-claude -p "use pr-comment--resolver subagent to resolve unresolved PR comments on $PR_URL"
+claude -p "use pr-comment-resolver subagent to resolve unresolved PR comments on $PR_URL" --from-pr $PR_NUMBER
