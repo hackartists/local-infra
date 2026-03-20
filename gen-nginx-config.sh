@@ -45,3 +45,5 @@ server {
 EOF
 
 echo "Generated $OUTPUT for ${DOMAIN} -> 192.168.0.7:${PORT}"
+
+docker compose exec nginx nginx -s reload
