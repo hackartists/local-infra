@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-PR_NUMBER="${1:?Usage: $0 <pr-number>}"
+PR_NUMBER="$1"
 DOMAIN="${PR_NUMBER}.pr.ratel.foundation"
 PORT="2${PR_NUMBER}"
 OUTPUT="nginx/conf.d/pr-${PR_NUMBER}.conf"
