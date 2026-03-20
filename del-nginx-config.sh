@@ -1,8 +1,8 @@
 #!/bin/bash
 set -e
 
-PR_NUMBER="${1:?Usage: $0 <pr-number>}"
-OUTPUT="nginx/conf.d/pr-${PR_NUMBER}.conf"
+PR_NUMBER=$1
+OUTPUT="nginx/conf.d/pr-$PR_NUMBER.conf"
 
 rm -rf "$OUTPUT"
 
