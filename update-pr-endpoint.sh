@@ -6,7 +6,7 @@ SSH_URL=$1
 BRANCH=$2
 PR_NUMBER=$3
 
-WORKING_DIR=github/$PR_NUMBER
+WORKING_DIR=$(pwd)/github/$PR_NUMBER
 mkdir -p $WORKING_DIR
 cd $WORKING_DIR
 mkdir target
@@ -37,6 +37,9 @@ if [ "$(docker ps -a -q -f name=$CONTAINER_NAME)" ]; then
 fi
 
 docker run -d --name $CONTAINER_NAME -p $PORT:8080 -e "IP=0.0.0.0" $ECR:$COMMIT
+
+cd $WORKING_DIR
+sudo rm -rf ratel
 
 echo "$PORT"
 
