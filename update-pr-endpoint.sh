@@ -9,15 +9,14 @@ PR_NUMBER=$3
 WORKING_DIR=github/$PR_NUMBER
 mkdir -p $WORKING_DIR
 cd $WORKING_DIR
+mkdir target
+
+export CARGO_TARGET_DIR=$WORKING_DIR/target
 
 # Git clone the PR branch if not exists
-if [ ! -d "ratel" ]; then
-    git clone --depth 1 --branch $BRANCH $SSH_URL
-fi
+git clone --depth 1 --branch $BRANCH $SSH_URL
 
 cd ratel
-git pull
-
 npm i
 
 cd app/ratel
@@ -33,7 +32,7 @@ PORT=2$PR_NUMBER
 CONTAINER_NAME=ratel-pr-$PR_NUMBER
 
 # Stop and remove the existing container if it exists
-if [ "$(docker ps -q -f name=$CONTAINER_NAME)" ]; then
+if [ "$(docker ps -a -q -f name=$CONTAINER_NAME)" ]; then
     docker rm -f $CONTAINER_NAME
 fi
 
