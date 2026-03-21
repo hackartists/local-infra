@@ -1,25 +1,41 @@
 #!/usr/bin/zsh
 source /home/hackartist/.zshrc
 
-ISSUE_URL=$2
-PR_NUMBER=`gh pr create --draft --title "WIP" --body "" --json number --jq '.number'`
+ORG=$1
+REPO=$2
+ISSUE_NUMBER=$3
+ISSUE_URL=https://github.com/$ORG/$REPO/issues/$ISSUE_NUMBER
 
-WORKING_DIR=github/$PR_NUMBER
+WORKING_DIR=$(pwd)/github/issue-$ISSUE_NUMBER
+export CARGO_TARGET_DIR=$WORKING_DIR/target
 
 mkdir -p $WORKING_DIR
 
 cd $WORKING_DIR
+git clone git@github.com:$ORG/$REPO.git
 
-# Git clone the PR branch if not exists
-if [ ! -d "ratel" ]; then
-    git clone --depth 1 --branch $BRANCH $SSH_URL
-fi
+cd $REPO
+git remote add hackartists git@github.com:hackartists/$REPO.git
+git branch -c issue-$ISSUE_NUMBER
+git checkout issue-$ISSUE_NUMBER
 
-cd ratel
-git pull
+git commit --allow-empty -am "WIP"
+git push hackartists issue-$ISSUE_NUMBER
+
+PR_NUMBER=`gh pr create --draft --title "WIP" --body "" --base dev --repo $ORG/$REPO --head hackartists:issue-$ISSUE_NUMBER 2>&1 | tail -n 1 | awk -F'/' '{print $NF}'`
+
+cd ../..
+mv issue-$ISSUE_NUMBER $PR_NUMBER
+cd $PR_NUMBER/ratel
+
 
 npm i
 
+cd app/ratel
+
 claude -p "use github-issue-resolver subagent to resolve $ISSUE_URL. Push hackartists remote the branch. Then update the PR ($PR_NUMBER) " --from-pr $PR_NUMBER
+
+cd $WORKING_DIR
+sudo rm -rf $REPO
 
 echo "PR number: $PR_NUMBER"

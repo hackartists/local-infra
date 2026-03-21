@@ -8,21 +8,25 @@ PR_NUMBER=$3
 
 WORKING_DIR=$(pwd)/github/$PR_NUMBER
 mkdir -p $WORKING_DIR
-cd $WORKING_DIR
-mkdir target
-
 export CARGO_TARGET_DIR=$WORKING_DIR/target
 
-# Git clone the PR branch if not exists
-git clone --depth 1 --branch $BRANCH $SSH_URL
+cd $WORKING_DIR
+CLONE_DIR=pr
 
-cd ratel
-npm i
+if [ ! -d "$CLONE_DIR" ]; then
+    git clone --depth 1 --branch $BRANCH $SSH_URL $CLONE_DIR
+fi
+
+cd $CLONE_DIR
+
+ln -s ../target ./target
+
+npm i > /dev/null
 
 cd app/ratel
 envs_ratel
 
-make build
+make build > /dev/null
 
 export COMMIT=pr-$PR_NUMBER
 export ECR=ratel
@@ -36,13 +40,9 @@ if [ "$(docker ps -a -q -f name=$CONTAINER_NAME)" ]; then
     docker rm -f $CONTAINER_NAME
 fi
 
-docker run -d --name $CONTAINER_NAME -p $PORT:8080 -e "IP=0.0.0.0" $ECR:$COMMIT
+docker run -d --restart always --name $CONTAINER_NAME -p $PORT:8080 -e "IP=0.0.0.0" $ECR:$COMMIT
 
 cd $WORKING_DIR
-sudo rm -rf ratel
+sudo rm -rf $CLONE_DIR
 
-echo "$PORT"
-
-
-
-
+echo "PR #$PR_NUMBER is running at http://localhost:$PORT"
