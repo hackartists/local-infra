@@ -10,6 +10,8 @@ WORKING_DIR=$(pwd)/github/$PR_NUMBER
 mkdir -p $WORKING_DIR
 export CARGO_TARGET_DIR=$WORKING_DIR/target
 
+mkdir -p $CARGO_TARGET_DIR
+
 cd $WORKING_DIR
 CLONE_DIR=pr
 
@@ -33,7 +35,7 @@ fi
 
 cd $CLONE_DIR
 
-ln -s ../target ./target
+ln -s $CARGO_TARGET_DIR ./target
 
 npm i > /dev/null
 

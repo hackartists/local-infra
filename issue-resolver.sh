@@ -6,9 +6,9 @@ REPO=$2
 ISSUE_NUMBER=$3
 ISSUE_URL=https://github.com/$ORG/$REPO/issues/$ISSUE_NUMBER
 
-WORKING_DIR=$(pwd)/github/issue-$ISSUE_NUMBER
-export CARGO_TARGET_DIR=$WORKING_DIR/target
+GITHUB_WORKSPACE=$(pwd)/github
 
+WORKING_DIR=$GITHUB_WORKSPACE/issue-$ISSUE_NUMBER
 mkdir -p $WORKING_DIR
 
 cd $WORKING_DIR
@@ -24,10 +24,13 @@ git push hackartists issue-$ISSUE_NUMBER
 
 PR_NUMBER=`gh pr create --draft --title "WIP" --body "" --base dev --repo $ORG/$REPO --head hackartists:issue-$ISSUE_NUMBER 2>&1 | tail -n 1 | awk -F'/' '{print $NF}'`
 
-cd ../..
-mv issue-$ISSUE_NUMBER $PR_NUMBER
-cd $PR_NUMBER/ratel
+cd $GITHUB_WORKSPACE
+mv $WORKING_DIR $GITHUB_WORKSPACE/$PR_NUMBER
 
+WORKING_DIR=$GITHUB_WORKSPACE/$PR_NUMBER
+export CARGO_TARGET_DIR=$WORKING_DIR/target
+
+cd $WORKING_DIR/$REPO
 
 npm i
 
@@ -37,7 +40,7 @@ claude -p "use github-issue-resolver subagent to resolve $ISSUE_URL. Push hackar
 
 gh pr ready $PR_NUMBER --repo $ORG/$REPO
 
-cd $WORKING_DIR
-sudo rm -rf $REPO
+cd $GITHUB_WORKSPACE
+sudo rm -rf $WORKING_DIR/$REPO
 
 echo "PR number: $PR_NUMBER"
