@@ -13,6 +13,20 @@ export CARGO_TARGET_DIR=$WORKING_DIR/target
 cd $WORKING_DIR
 CLONE_DIR=pr
 
+timeout=600
+interval=30
+elapsed=0
+
+while [ $elapsed -lt $timeout ]; do
+    if [ ! -d "$CLONE_DIR" ]; then
+        echo "$CLONE_DIR does not exist, proceeding to handle PR updates..."
+        break
+    fi
+    echo "Other process is handling the PR updates, waiting for $interval seconds..."
+    sleep $interval
+    elapsed=$((elapsed + interval))
+done
+
 if [ ! -d "$CLONE_DIR" ]; then
     git clone --depth 1 --branch $BRANCH $SSH_URL $CLONE_DIR
 fi
