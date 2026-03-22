@@ -46,3 +46,23 @@ cd $WORKING_DIR
 sudo rm -rf $CLONE_DIR
 
 echo "PR #$PR_NUMBER is running at http://localhost:$PORT"
+
+timeout=60
+interval=10
+elapsed=0
+
+while [ $elapsed -lt $timeout ]; do
+    wget http://localhost:$PORT
+
+    # Exit if 0 is returned, meaning the service is up
+    if [ $? -eq 0 ]; then
+        echo "Service is up and running!"
+        exit 0
+    fi
+
+    sleep $interval
+    elapsed=$((elapsed + interval))
+done
+
+echo "Service did not start within $timeout seconds."
+exit 1
