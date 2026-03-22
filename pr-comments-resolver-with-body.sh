@@ -2,9 +2,10 @@
 source /home/hackartist/.zshrc
 
 PR_NUMBER=$1
-BODY="$2"
+COMMENT_URL=$2
 
 WORKING_DIR=$(pwd)/github/$PR_NUMBER
+mkdir -p $WORKING_DIR
 
 cd $WORKING_DIR
 CLONE_DIR=issue
@@ -33,7 +34,7 @@ npm i > /dev/null
 cd app/ratel
 envs_ratel
 
-claude -p "$BODY . Could you fix it? After fix it, commit and push changes. Then please add reaction to the comment." --from-pr $PR_NUMBER
+claude -p "Could you fix $COMMENT_URL on $PR_NUMBER? After fix it, commit and push changes. Then please add reaction to the comment." --from-pr $PR_NUMBER
 
 cd $WORKING_DIR
 sudo rm -rf $CLONE_DIR
