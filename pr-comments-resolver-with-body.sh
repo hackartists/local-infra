@@ -2,7 +2,8 @@
 source /home/hackartist/.zshrc
 
 PR_NUMBER=$1
-COMMENT_URL=$2
+BRANCH=$2
+COMMENT_URL=$3
 
 WORKING_DIR=$(pwd)/github/$PR_NUMBER
 mkdir -p $WORKING_DIR
@@ -24,10 +25,9 @@ while [ $elapsed -lt $timeout ]; do
     elapsed=$((elapsed + interval))
 done
 
-git clone --branch  git@github.com:hackartists/ratel.git $CLONE_DIR
+git clone --branch $BRANCH git@github.com:hackartists/ratel.git $CLONE_DIR
 
 cd $CLONE_DIR
-gh pr checkout --repo biyard/ratel $PR_NUMBER
 
 npm i > /dev/null
 
