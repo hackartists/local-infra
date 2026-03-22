@@ -35,6 +35,8 @@ cd app/ratel
 
 claude -p "use github-issue-resolver subagent to resolve $ISSUE_URL. Push hackartists remote the branch. Then update the PR ($PR_NUMBER) " --from-pr $PR_NUMBER
 
+gh pr ready $PR_NUMBER --repo $ORG/$REPO
+
 cd $WORKING_DIR
 sudo rm -rf $REPO
 
