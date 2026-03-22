@@ -8,6 +8,8 @@ BRANCH=$4
 
 WORKING_DIR=$(pwd)/github/$PR_NUMBER
 
+mkdir -p $WORKING_DIR
+
 cd $WORKING_DIR
 CLONE_DIR=comment
 
