@@ -35,7 +35,7 @@ npm i > /dev/null
 cd app/ratel
 envs_ratel
 
-claude -p "use pr-comment-resolver subagent to resolve unresolved PR comments on $PR_URL. If completly handle it, resolve the comments. Then resolve comments you have handled. When replying to the comment, let me know the comment is written by ClaudeCode adding 'Generated With [Cluade Code](..)'. Finally, please update CLAUDE.md to reflect feedback for development next time." --from-pr $PR_NUMBER
+claude -p "use pr-comment-resolver subagent to resolve unresolved PR comments on $PR_URL. If completly handle it, resolve the comments. Then resolve comments you have handled. When replying to the comment, let me know the comment is written by ClaudeCode adding 'Generated With [Cluade Code](..)'." --from-pr $PR_NUMBER
 
 cd $WORKING_DIR
 sudo rm -rf $CLONE_DIR
