@@ -19,7 +19,7 @@ git remote add hackartists git@github.com:hackartists/$REPO.git
 git branch -c issue-$ISSUE_NUMBER
 git checkout issue-$ISSUE_NUMBER
 
-git commit --allow-empty -am "WIP"
+git commit --allow-empty -am `WIP: Resolving an issue #$ISSUE_NUMBER`
 git push hackartists issue-$ISSUE_NUMBER
 
 PR_NUMBER=`gh pr create --draft --title "WIP" --body "" --base dev --repo $ORG/$REPO --head hackartists:issue-$ISSUE_NUMBER 2>&1 | tail -n 1 | awk -F'/' '{print $NF}'`
@@ -36,7 +36,7 @@ npm i
 
 cd app/ratel
 
-claude -p "use github-issue-resolver subagent to resolve $ISSUE_URL. Push hackartists remote the branch. Then update the PR ($PR_NUMBER) " --from-pr $PR_NUMBER
+claude -p "use github-issue-resolver subagent to resolve $ISSUE_URL. Then write Playwright testing code for the implementation. Finally, push changes to hackartists remote the branch. Then update the PR ($PR_NUMBER) " --from-pr $PR_NUMBER
 
 gh pr ready $PR_NUMBER --repo $ORG/$REPO
 
