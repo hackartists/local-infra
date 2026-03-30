@@ -21,7 +21,6 @@ elapsed=0
 
 while [ $elapsed -lt $timeout ]; do
     if [ ! -d "$CLONE_DIR" ]; then
-        echo "$CLONE_DIR does not exist, proceeding to handle PR updates..."
         break
     fi
     echo "Other process is handling the PR updates, waiting for $interval seconds..."
@@ -54,6 +53,7 @@ CONTAINER_NAME=ratel-pr-$PR_NUMBER
 # Stop and remove the existing container if it exists
 if [ "$(docker ps -a -q -f name=$CONTAINER_NAME)" ]; then
     docker rm -f $CONTAINER_NAME
+    docker image rm $ECR:$COMMIT
 fi
 
 docker run -d --restart always --name $CONTAINER_NAME -p $PORT:8080 -e "IP=0.0.0.0" $ECR:$COMMIT
