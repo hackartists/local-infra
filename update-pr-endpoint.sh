@@ -34,12 +34,12 @@ fi
 
 cd $CLONE_DIR
 
-ln -s $CARGO_TARGET_DIR ./target
-
 npm i > /dev/null
 
 cd app/ratel
 envs_ratel
+
+ln -s $CARGO_TARGET_DIR ../../target
 
 make build > /dev/null
 

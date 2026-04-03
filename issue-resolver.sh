@@ -36,7 +36,7 @@ npm i
 
 cd app/ratel
 
-claude -p "use github-issue-resolver subagent to resolve $ISSUE_URL. Then write Playwright testing code for the implementation. Finally, push changes to hackartists remote the branch. Then update the PR ($PR_NUMBER) " --from-pr $PR_NUMBER
+claude -p "use github-issue-resolver subagent to resolve $ISSUE_URL. Finally, push changes to hackartists remote the branch. Then update the PR ($PR_NUMBER) " --from-pr $PR_NUMBER
 
 gh pr ready $PR_NUMBER --repo $ORG/$REPO
 

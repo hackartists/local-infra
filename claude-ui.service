@@ -1,0 +1,12 @@
+[Unit]
+Description=Local Infra (claude-code-ui)
+
+[Service]
+Type=simple
+WorkingDirectory=/home/hackartist/data/devel/github.com/hackartists/local-infra
+ExecStart=/bin/zsh -lc 'source ~/.zshrc && claude-code-ui -p 28000'
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
