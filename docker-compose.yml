@@ -41,7 +41,7 @@ services:
       N8N_DOMAIN: "n8n.hackartist.io"
       WEBHOOK_URL: https://n8n.hackartist.io/
       N8N_PROXY_HOPS: 1
-
+      NODE_FUNCTION_ALLOW_BUILTIN: "*"
 
 volumes:
   n8n-volume:

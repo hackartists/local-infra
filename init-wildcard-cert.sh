@@ -2,7 +2,7 @@
 set -e
 
 COMPOSE="docker compose"
-DOMAIN="pr.ratel.foundation"
+DOMAIN="${DOMAIN:-pr.ratel.foundation}"
 WILDCARD="*.$DOMAIN"
 EMAIL="${CERTBOT_EMAIL:-admin@biyard.co}"
 CERT_PATH="/etc/letsencrypt/live/$DOMAIN/fullchain.pem"
@@ -10,12 +10,12 @@ CERT_PATH="/etc/letsencrypt/live/$DOMAIN/fullchain.pem"
 echo "=== Wildcard Certificate Init for $WILDCARD ==="
 
 # Check if certificate already exists in the volume
-if $COMPOSE run --rm --entrypoint "" certbot test -f "$CERT_PATH" 2>/dev/null; then
-    echo "Certificate for $WILDCARD already exists."
-    echo "To force renew, run:"
-    echo "  $COMPOSE run --rm certbot renew --cert-name $DOMAIN --force-renewal"
-    exit 0
-fi
+#if $COMPOSE run --rm --entrypoint "" certbot test -f "$CERT_PATH" 2>/dev/null; then
+#    echo "Certificate for $WILDCARD already exists."
+#    echo "To force renew, run:"
+#    echo "  $COMPOSE run --rm certbot renew --cert-name $DOMAIN --force-renewal"
+#    exit 0
+#fi
 
 echo "No certificate found for $WILDCARD. Starting DNS-01 challenge..."
 echo ""
@@ -28,6 +28,7 @@ $COMPOSE run --rm certbot certonly \
     --manual \
     --preferred-challenges dns \
     -d "$WILDCARD" \
+    -d "$DOMAIN" \
     --email "$EMAIL" \
     --agree-tos --no-eff-email
 

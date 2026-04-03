@@ -2,7 +2,7 @@
 set -e
 
 COMPOSE="docker compose"
-DOMAIN="n8n.hackartist.io"
+DOMAIN="${DOMAIN:-n8n.hackartist.io}"
 EMAIL="${CERTBOT_EMAIL:-admin@hackartist.io}"
 CERT_PATH="/etc/letsencrypt/live/$DOMAIN/fullchain.pem"
 
