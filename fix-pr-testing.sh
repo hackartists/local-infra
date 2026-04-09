@@ -36,7 +36,7 @@ npm i > /dev/null
 cd app/ratel
 envs_ratel
 
-claude -p "Fix workflow job error on $PR_URL PR. This is workflow run url( $RUN_URL ) . Then, make and push changes." --from-pr $PR_NUMBER
+claude -p "Fix workflow job error on $PR_URL PR. This is workflow run url( $RUN_URL ) . You should make sure that pass all playwright tests. Then, make and push changes." --from-pr $PR_NUMBER
 
 cd $WORKING_DIR
 sudo rm -rf $CLONE_DIR
