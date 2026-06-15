@@ -39,6 +39,18 @@ services:
         RUNNER_TOKEN: ACAM5B3ZOFH3QXCD3DHBIFDKF6THO
         LABELS: linux,arm64
 
+  runner3:
+    container_name: runner3
+    restart: always
+    image: public.ecr.aws/sam/build-provided.al2023:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.runner
+      args:
+        RUNNER_NAME: runner3
+        RUNNER_TOKEN: ACAM5B2RJ5HYEZTKJR7QS5DKF6VJK
+        LABELS: linux,arm64
+
   summer:
     container_name: summer
     restart: always
