@@ -9,26 +9,67 @@ services:
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
-      - certbot-etc:/etc/letsencrypt:ro
-      - certbot-var:/var/lib/letsencrypt
-      - certbot-webroot:/var/www/certbot:ro
+      - ./certbot/etc:/etc/letsencrypt:ro
+      - ./certbot/var:/var/lib/letsencrypt
+      - ./certbot/webroot:/var/www/certbot:ro
+      - /Users/hackartist/data/devel/github.com/biyard/ratel/app/ratel/assets/design:/var/www/ratel
     depends_on:
       - n8n
+
+  runner1:
+    container_name: runner1
+    restart: always
+    image: public.ecr.aws/sam/build-provided.al2023:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.runner
+      args:
+        RUNNER_TOKEN: ACAM5B74RV4VUHLY3V6XTUDKF6S5Q
+        LABELS: linux,arm64,asset
+
+  runner2:
+    container_name: runner2
+    restart: always
+    image: public.ecr.aws/sam/build-provided.al2023:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.runner
+      args:
+        RUNNER_NAME: runner2
+        RUNNER_TOKEN: ACAM5B3ZOFH3QXCD3DHBIFDKF6THO
+        LABELS: linux,arm64
+
+  summer:
+    container_name: summer
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile.user
+      args:
+        USERNAME: summer
+    environment:
+      PORT: 18080
+    volumes:
+      - ./users/summer:/home/summer
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./summer-entrypoint.sh:/summer-entrypoint.sh
+    working_dir: /home/summer/asset
+    command: claude rc --name "Landing Wording UI" --permission-mode bypassPermissions
 
   certbot:
     container_name: certbot
     image: certbot/certbot
     volumes:
-      - certbot-etc:/etc/letsencrypt
-      - certbot-var:/var/lib/letsencrypt
-      - certbot-webroot:/var/www/certbot
+      - ./certbot/etc:/etc/letsencrypt
+      - ./certbot/var:/var/lib/letsencrypt
+      - ./certbot/webroot:/var/www/certbot
 
   n8n:
     container_name: n8n
     restart: always
     image: docker.n8n.io/n8nio/n8n
     volumes:
-      - n8n-volume:/home/node/.n8n
+      - ./.n8n:/home/node/.n8n
     environment:
       N8N_SECURE_COOKIE: false
       TZ: Asia/Seoul
@@ -42,9 +83,3 @@ services:
       WEBHOOK_URL: https://n8n.hackartist.io/
       N8N_PROXY_HOPS: 1
       NODE_FUNCTION_ALLOW_BUILTIN: "*"
-
-volumes:
-  n8n-volume:
-  certbot-etc:
-  certbot-var:
-  certbot-webroot:

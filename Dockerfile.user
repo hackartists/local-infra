@@ -1,0 +1,18 @@
+FROM archlinux/archlinux
+
+ARG USERNAME=builder
+
+RUN echo "DisableSandbox" >> /etc/pacman.conf && \
+    pacman --disable-sandbox -Sy --noconfirm git go base-devel sudo && \
+    useradd -m ${USERNAME} && \
+    echo "${USERNAME} ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers && \
+    cd /tmp && \
+    git clone https://aur.archlinux.org/yay.git && \
+    chown -R ${USERNAME} yay && \
+    cd yay && \
+    sudo -u ${USERNAME} makepkg -si --noconfirm && \
+    sudo -u ${USERNAME} yay -S claude-code rustup docker zsh docker-compose --noconfirm && \
+    usermod -aG docker ${USERNAME}
+
+USER ${USERNAME}
+WORKDIR /home/${USERNAME}
