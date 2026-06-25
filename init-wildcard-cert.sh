@@ -28,7 +28,6 @@ $COMPOSE run --rm certbot certonly \
     --manual \
     --preferred-challenges dns \
     -d "$WILDCARD" \
-    -d "$DOMAIN" \
     --email "$EMAIL" \
     --agree-tos --no-eff-email
 

@@ -12,7 +12,7 @@ services:
       - ./certbot/etc:/etc/letsencrypt:ro
       - ./certbot/var:/var/lib/letsencrypt
       - ./certbot/webroot:/var/www/certbot:ro
-      - /Users/hackartist/data/devel/github.com/biyard/ratel/app/ratel/assets/design:/var/www/ratel
+      - ./nginx/webroot:/var/www/pr:ro
     depends_on:
       - n8n
 
@@ -20,6 +20,9 @@ services:
     container_name: runner1
     restart: always
     image: public.ecr.aws/sam/build-provided.al2023:latest
+    volumes:
+      - ./nginx/webroot:/root/nginx
+    working_dir: /root/actions-runner
     build:
       context: .
       dockerfile: Dockerfile.runner
@@ -31,6 +34,9 @@ services:
     container_name: runner2
     restart: always
     image: public.ecr.aws/sam/build-provided.al2023:latest
+    volumes:
+      - ./nginx/webroot:/root/nginx
+    working_dir: /root/runner2
     build:
       context: .
       dockerfile: Dockerfile.runner
@@ -43,12 +49,60 @@ services:
     container_name: runner3
     restart: always
     image: public.ecr.aws/sam/build-provided.al2023:latest
+    volumes:
+      - ./nginx/webroot:/root/nginx
+    working_dir: /root/runner3
     build:
       context: .
       dockerfile: Dockerfile.runner
       args:
         RUNNER_NAME: runner3
         RUNNER_TOKEN: ACAM5B2RJ5HYEZTKJR7QS5DKF6VJK
+        LABELS: linux,arm64
+
+  runner4:
+    container_name: runner4
+    restart: always
+    image: public.ecr.aws/sam/build-provided.al2023:latest
+    volumes:
+      - ./nginx/webroot:/root/nginx
+    working_dir: /root/runner4
+    build:
+      context: .
+      dockerfile: Dockerfile.runner
+      args:
+        RUNNER_NAME: runner4
+        RUNNER_TOKEN: ACAM5B3AAJVQH32IF6HM7FDKF7LE2
+        LABELS: linux,arm64
+
+  runner5:
+    container_name: runner5
+    restart: always
+    image: public.ecr.aws/sam/build-provided.al2023:latest
+    volumes:
+      - ./nginx/webroot:/root/nginx
+    working_dir: /root/runner5
+    build:
+      context: .
+      dockerfile: Dockerfile.runner
+      args:
+        RUNNER_NAME: runner5
+        RUNNER_TOKEN: ACAM5B6KK4MCYVY4RTYV7FLKF7LIM
+        LABELS: linux,arm64
+
+  runner6:
+    container_name: runner6
+    restart: always
+    image: public.ecr.aws/sam/build-provided.al2023:latest
+    volumes:
+      - ./nginx/webroot:/root/nginx
+    working_dir: /root/runner6
+    build:
+      context: .
+      dockerfile: Dockerfile.runner
+      args:
+        RUNNER_NAME: runner6
+        RUNNER_TOKEN: ACAM5BZEIN6JWOH7MS5UPIDKF7LLE
         LABELS: linux,arm64
 
   summer:
