@@ -105,6 +105,54 @@ services:
         RUNNER_TOKEN: ACAM5BZEIN6JWOH7MS5UPIDKF7LLE
         LABELS: linux,arm64
 
+  runner7:
+    restart: always
+    image: public.ecr.aws/sam/build-provided.al2023:latest
+    volumes:
+      - ./nginx/webroot:/root/nginx
+      - /var/run/docker.sock:/var/run/docker.sock
+    container_name: runner7
+    working_dir: /root/runner7
+    build:
+      context: .
+      dockerfile: Dockerfile.runner
+      args:
+        RUNNER_NAME: runner7
+        RUNNER_TOKEN: ACAM5B4QJVIEKMZU3W6U7VDKJXFEU
+        LABELS: ubuntu,linux,arm64,docker
+
+  runner8:
+    restart: always
+    image: public.ecr.aws/sam/build-provided.al2023:latest
+    volumes:
+      - ./nginx/webroot:/root/nginx
+      - /var/run/docker.sock:/var/run/docker.sock
+    container_name: runner8
+    working_dir: /root/runner8
+    build:
+      context: .
+      dockerfile: Dockerfile.runner
+      args:
+        RUNNER_NAME: runner8
+        RUNNER_TOKEN: ACAM5BYLY3JKVEZJ6QJWPBDKJXFMG
+        LABELS: ubuntu,linux,arm64,docker
+
+  runner9:
+    restart: always
+    image: public.ecr.aws/sam/build-provided.al2023:latest
+    volumes:
+      - ./nginx/webroot:/root/nginx
+      - /var/run/docker.sock:/var/run/docker.sock
+    container_name: runner9
+    working_dir: /root/runner9
+    build:
+      context: .
+      dockerfile: Dockerfile.runner
+      args:
+        RUNNER_NAME: runner9
+        RUNNER_TOKEN: ACAM5B57FIRZEMPKIUY4ZWDKJXFPC
+        LABELS: ubuntu,linux,arm64,docker
+
   summer:
     container_name: summer
     restart: always

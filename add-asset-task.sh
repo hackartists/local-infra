@@ -5,14 +5,26 @@
 # Invoked by n8n (SSH) when the user clicks "Yes" on the prompt:
 #   add-asset-task.sh <channel> <thread_ts> <task_text>
 #
+# Talks to the Slack Lists API directly (does NOT depend on slack-tasks.sh,
+# whose column constants drift when the list schema changes).
+#
+# Optional: set ASSET_TASK_GUBUN to one of "MVP" | "Dev-Only" | "고도화" to
+# also set the 구분(select) column. Default: leave 구분 empty (human fills it).
+#
 # Auth: bot token (xoxb-…) from $SLACK_CANVAS_TOKEN_FILE
 #       (default ~/.claude/.slack-canvas-token). Scopes: chat:write, lists:write.
 set -euo pipefail
 export LC_ALL="${LC_ALL:-en_US.UTF-8}" LANG="${LANG:-en_US.UTF-8}"
 
 TOKEN_FILE="${SLACK_CANVAS_TOKEN_FILE:-$HOME/.claude/.slack-canvas-token}"
-SLACK_TASKS="$HOME/.claude/plugins/marketplaces/hackartists/skills/slack-tasks/slack-tasks.sh"
 API="https://slack.com/api"
+
+# --- Tasks(Asset) list schema (verified live via files.info) ---------------
+LIST_ID="F0B9C3J3J48"
+NAME_COL="name"                 # primary text column (이름)
+GUBUN_COL="Col0BC83VQMKN"       # 구분 (select)
+# 구분 options: MVP=OptF1L98Q24 · Dev-Only=Opt82HRKTUC · 고도화=OptPQU2UIU5
+declare -A GUBUN_OPT=( ["MVP"]="OptF1L98Q24" ["Dev-Only"]="Opt82HRKTUC" ["고도화"]="OptPQU2UIU5" )
 
 die() { echo "error: $*" >&2; exit 1; }
 
@@ -23,22 +35,38 @@ CHANNEL="$1"; THREAD_TS="$2"; TASK="$3"
 TOK="$(tr -d '\n' < "$TOKEN_FILE")"
 [ -n "$TOK" ] || die "empty token in $TOKEN_FILE"
 command -v jq >/dev/null || die "jq is required"
-[ -x "$SLACK_TASKS" ] || die "slack-tasks.sh not found/executable: $SLACK_TASKS"
 
-# 1) add to the Tasks(Asset) list (구분=기획). Capture output for the reply.
-ADD_OUT="$("$SLACK_TASKS" add 기획 "$TASK" 2>&1)" || die "slack-tasks add failed: $ADD_OUT"
+api() { # api <method> <json-payload>
+  printf '%s' "$2" | curl -s -X POST \
+    -H "Authorization: Bearer $TOK" \
+    -H "Content-Type: application/json; charset=utf-8" \
+    --data @- "$API/$1"
+}
 
-# 2) reply the registered task back into the thread.
-REPLY="$(jq -n --arg c "$CHANNEL" --arg t "$THREAD_TS" --arg task "$TASK" \
-  '{channel:$c, thread_ts:$t,
-    text:("✅ Tasks(Asset)에 등록했습니다 (구분: 기획)\n• " + $task)}')"
+# --- build the item cells: name (+ optional 구분) ---------------------------
+CELLS="$(jq -nc --arg ncol "$NAME_COL" --arg name "$TASK" \
+          '[{column_id:$ncol, text:$name}]')"
+GUBUN_LABEL=""
+if [ -n "${ASSET_TASK_GUBUN:-}" ]; then
+  opt="${GUBUN_OPT[$ASSET_TASK_GUBUN]:-}"
+  [ -n "$opt" ] || die "ASSET_TASK_GUBUN must be one of: MVP | Dev-Only | 고도화"
+  CELLS="$(jq -nc --argjson c "$CELLS" --arg gcol "$GUBUN_COL" --arg opt "$opt" \
+            '$c + [{column_id:$gcol, select:[$opt]}]')"
+  GUBUN_LABEL=" (구분: $ASSET_TASK_GUBUN)"
+fi
 
-RESP="$(printf '%s' "$REPLY" | curl -s -X POST \
-  -H "Authorization: Bearer $TOK" \
-  -H "Content-Type: application/json; charset=utf-8" \
-  --data @- "$API/chat.postMessage")"
+# 1) create the list item
+CREATE_PAYLOAD="$(jq -nc --arg list "$LIST_ID" --argjson cells "$CELLS" \
+                   '{list_id:$list, cells:$cells}')"
+CREATE_RES="$(api slackLists.items.create "$CREATE_PAYLOAD")"
+[ "$(printf '%s' "$CREATE_RES" | jq -r '.ok')" = "true" ] \
+  || die "list add failed: $(printf '%s' "$CREATE_RES" | jq -c '{ok,error,needed,provided}')"
 
-[ "$(printf '%s' "$RESP" | jq -r '.ok')" = "true" ] \
-  || die "thread reply failed: $(printf '%s' "$RESP" | jq -c '{ok,error}')"
+# 2) reply the registered task back into the thread
+REPLY="$(jq -nc --arg c "$CHANNEL" --arg t "$THREAD_TS" --arg task "$TASK" --arg g "$GUBUN_LABEL" \
+  '{channel:$c, thread_ts:$t, text:("✅ Tasks(Asset)에 등록했습니다" + $g + "\n• " + $task)}')"
+REPLY_RES="$(api chat.postMessage "$REPLY")"
+[ "$(printf '%s' "$REPLY_RES" | jq -r '.ok')" = "true" ] \
+  || die "thread reply failed: $(printf '%s' "$REPLY_RES" | jq -c '{ok,error}')"
 
-echo "ok: registered \"$TASK\""
+echo "ok: registered \"$TASK\"$GUBUN_LABEL"

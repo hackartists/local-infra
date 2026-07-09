@@ -36,7 +36,11 @@
 | `add-asset-task.sh <channel> <thread_ts> <task>` | Tasks(Asset) 등록 + 스레드 확인 답글 |
 
 - 봇 토큰: `~/.claude/.slack-canvas-token` (스코프 `chat:write`, `lists:write` 등 확인됨).
-- Tasks(Asset) 등록: `slack-tasks` 스킬의 `slack-tasks.sh add 기획 "<이름>"` (구분=기획).
+- Tasks(Asset) 등록: **Slack Lists API 직접 호출** (`slackLists.items.create`, `cells:[{column_id:"name", text}]`).
+  공유 스킬 `slack-tasks.sh`는 컬럼 상수가 stale라 사용하지 않음(decoupled).
+- 리스트 스키마(live 확인): list `F0B9C3J3J48`, 이름 컬럼 `name`(text),
+  구분 컬럼 `Col0BC83VQMKN`(select): MVP=`OptF1L98Q24` · Dev-Only=`Opt82HRKTUC` · 고도화=`OptPQU2UIU5`.
+  기본은 구분 미설정(사람이 분류). `ASSET_TASK_GUBUN=MVP|Dev-Only|고도화` 로 기본 구분 지정 가능.
 - 상수: `#asset = C09PY44SDHD`, Miner = `U03QHDMCVB2`, bot user = `U0AMW73LPBM`.
 
 ## 수동 설정 (테스트 전 1회)
