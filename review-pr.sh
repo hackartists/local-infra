@@ -1,4 +1,4 @@
-#!/usr/bin/zsh
+#!/usr/homebrew/bin/zsh
 
 source /home/hackartist/.zshrc
 
