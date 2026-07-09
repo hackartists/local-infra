@@ -39,6 +39,11 @@ npm i > /dev/null
 cd app/ratel
 envs_ratel
 
+cd js
+npm i
+
+cd ..
+
 ln -s $CARGO_TARGET_DIR ../../target
 
 make build > /dev/null
