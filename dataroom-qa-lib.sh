@@ -21,3 +21,17 @@ redact_secrets() {
     -e 's/AKIA[0-9A-Z]{16}/[REDACTED]/g' \
     -e 's/-----BEGIN [A-Z ]*PRIVATE KEY-----/[REDACTED]/g'
 }
+
+# should_skip — 이 메시지에 답변하면 안 되는지 판정.
+# Args: <bot_id> <subtype> <user>
+# 스킵해야 하면 사유를 출력하고 0 을 반환, 아니면 1 을 반환.
+#
+# 자기 루프 차단: 우리 답변은 "cc. <@Miner>" 로 끝나므로 트리거 조건을
+# 스스로 만족한다. 이 가드가 authoritative 하다 (n8n IF 조건은 1차 방어일 뿐).
+should_skip() {
+  local bot_id="$1" subtype="$2" user="$3"
+  if [ -n "$bot_id" ]; then echo "bot message (bot_id=$bot_id)"; return 0; fi
+  if [ -n "$subtype" ]; then echo "system message (subtype=$subtype)"; return 0; fi
+  if [ "$user" = "$BOT" ]; then echo "self message (user=$user)"; return 0; fi
+  return 1
+}

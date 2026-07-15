@@ -48,6 +48,18 @@ check "코드블록/일반 텍스트는 그대로" \
   "workspace id 로 스코프합니다" \
   "$(printf '%s' 'workspace id 로 스코프합니다' | redact_secrets)"
 
+# --- should_skip ---
+# 반환값 0 = 스킵해야 함
+skip_reason() { should_skip "$1" "$2" "$3"; }
+skip_code()   { should_skip "$1" "$2" "$3" >/dev/null; echo $?; }
+
+check "bot_id 있으면 스킵" "0" "$(skip_code "B0AN66CRD2Q" "" "U03QHDMCVB2")"
+check "bot_id 스킵 사유" "bot message (bot_id=B0AN66CRD2Q)" "$(skip_reason "B0AN66CRD2Q" "" "U03QHDMCVB2")"
+check "subtype 있으면 스킵" "0" "$(skip_code "" "channel_join" "U03QHDMCVB2")"
+check "봇 자신이면 스킵" "0" "$(skip_code "" "" "U0AMW73LPBM")"
+check "봇 자신 스킵 사유" "self message (user=U0AMW73LPBM)" "$(skip_reason "" "" "U0AMW73LPBM")"
+check "사람의 일반 메시지는 스킵 안 함" "1" "$(skip_code "" "" "U03QHDMCVB2")"
+
 echo
 echo "passed: $PASS  failed: $FAIL"
 [ "$FAIL" -eq 0 ]
