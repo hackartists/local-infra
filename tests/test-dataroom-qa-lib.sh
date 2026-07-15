@@ -60,6 +60,15 @@ check "봇 자신이면 스킵" "0" "$(skip_code "" "" "U0AMW73LPBM")"
 check "봇 자신 스킵 사유" "self message (user=U0AMW73LPBM)" "$(skip_reason "" "" "U0AMW73LPBM")"
 check "사람의 일반 메시지는 스킵 안 함" "1" "$(skip_code "" "" "U03QHDMCVB2")"
 
+# --- format_reply ---
+check "질문자 멘션 + cc Miner" \
+  "$(printf '<@U0123ABC> 데이터룸은 실사 자료 공간입니다.\n\ncc. <@U03QHDMCVB2>')" \
+  "$(format_reply "U0123ABC" "데이터룸은 실사 자료 공간입니다.")"
+
+check "여러 줄 답변도 cc 는 맨 끝" \
+  "$(printf '<@U0123ABC> 첫째 줄\n둘째 줄\n\ncc. <@U03QHDMCVB2>')" \
+  "$(format_reply "U0123ABC" "$(printf '첫째 줄\n둘째 줄')")"
+
 echo
 echo "passed: $PASS  failed: $FAIL"
 [ "$FAIL" -eq 0 ]

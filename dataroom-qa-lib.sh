@@ -35,3 +35,11 @@ should_skip() {
   if [ "$user" = "$BOT" ]; then echo "self message (user=$user)"; return 0; fi
   return 1
 }
+
+# format_reply — 게시할 슬랙 메시지 본문 생성.
+# Args: <asker_user_id> <answer>
+# 질문자를 멘션하고, 마지막 줄에 Miner 를 cc 한다.
+format_reply() {
+  local asker="$1" answer="$2"
+  printf '<@%s> %s\n\ncc. <@%s>' "$asker" "$answer" "$MINER"
+}
