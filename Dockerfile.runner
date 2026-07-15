@@ -1,18 +1,9 @@
 FROM public.ecr.aws/sam/build-provided.al2023:latest
 
-ARG LABELS
-ARG RUNNER_TOKEN
-ARG RUNNER_NAME
 
 RUN cd /root && \
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs > install.sh && \
-    sh install.sh -y && \
-    mkdir -p /root/$RUNNER_NAME && \
-    cd /root/$RUNNER_NAME && \
-    curl -o actions-runner-linux-arm64-2.335.1.tar.gz -L https://github.com/actions/runner/releases/download/v2.335.1/actions-runner-linux-arm64-2.335.1.tar.gz && \
-    tar xzf ./actions-runner-linux-arm64-2.335.1.tar.gz && \
-    dnf install dotnet-sdk-10.0 openssl-devel docker -y && \
-    RUNNER_ALLOW_RUNASROOT=true ./config.sh --url https://github.com/biyard --token $RUNNER_TOKEN --labels $LABELS --name $RUNNER_NAME
+    sh install.sh -y
 
 RUN mkdir -p /usr/libexec/docker/cli-plugins/ && \
     curl -SL "https://github.com/docker/compose/releases/latest/download/docker-compose-linux-$(uname -m)" -o /usr/libexec/docker/cli-plugins/docker-compose && \
@@ -20,6 +11,6 @@ RUN mkdir -p /usr/libexec/docker/cli-plugins/ && \
 
 ENV PATH="/root/.cargo/bin:${PATH}"
 ENV RUNNER_ALLOW_RUNASROOT=true
-WORKDIR /root/$RUNNER_NAME
+WORKDIR /root/runner
 
-CMD ["/bin/bash", "-c", "./run.sh"]
+CMD ["/bin/bash", "-c", "/root/runner-entrypoint.sh"]
