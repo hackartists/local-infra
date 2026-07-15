@@ -78,6 +78,74 @@ case "$MSG_TEXT" in
   *) echo "skip: no Miner/hackartist mention in ts=$TS"; exit 0 ;;
 esac
 
-echo "ok: will answer ts=$TS thread=$THREAD_TS asker=$MSG_USER"
-echo "--- text ---"; printf '%s\n' "$MSG_TEXT"
-echo "--- context ---"; printf '%s\n' "$CONTEXT"
+# 스레드마다 결정적 세션 id → 같은 스레드의 후속 질문이 맥락을 유지한다.
+uuid="$(python3 -c 'import uuid,sys; print(uuid.uuid3(uuid.NAMESPACE_DNS, sys.argv[1]))' "dataroom-$THREAD_TS")"
+
+PROMPT="당신은 Biyard #dataroom 채널의 질의응답 에이전트입니다.
+
+[질문]
+\"\"\"
+$MSG_TEXT
+\"\"\"
+
+[스레드 맥락 — 앞선 대화, 없을 수 있음]
+\"\"\"
+$CONTEXT
+\"\"\"
+
+[규칙]
+1. asset 프로젝트의 메모리를 근거로 답변합니다.
+2. 커맨드를 실행하거나 코드베이스 파일을 열어 분석하지 마세요. 이미 메모리에 있는 내용으로만 판단합니다.
+3. 메모리에 근거가 있으면 그 내용으로 답합니다.
+4. 메모리에 근거가 없으면 일반 지식으로 답하되, '메모리에 기록된 내용은 아닙니다' 처럼 출처를 반드시 구분해 밝힙니다.
+5. 답변은 슬랙에 그대로 게시됩니다. **답변 본문만** 출력하세요. 인사말, 서론, 맺음말, 사용자 멘션, cc 를 넣지 마세요 (셸이 붙입니다).
+6. 슬랙 mrkdwn 형식으로, 한국어로, 간결하게 씁니다.
+7. 토큰·비밀번호·API 키 등 자격증명은 어떤 경우에도 출력하지 마세요."
+
+# cwd = asset repo → 그 프로젝트의 Claude 메모리가 자연 로드된다.
+# 최초 실행은 --session-id 로 생성, 재실행은 -r 로 resume (--session-id 는 생성 전용).
+WORKDIR="/tmp/dataroom/$THREAD_TS"
+mkdir -p "$WORKDIR"
+SESSION_FLAG="$WORKDIR/.claude-session"
+if [ -f "$SESSION_FLAG" ]; then
+  RAW="$(cd "$ASSET" && claude -p "$PROMPT" -r "$uuid" 2>&1)" || true
+else
+  RAW="$(cd "$ASSET" && claude -p "$PROMPT" --session-id "$uuid" 2>&1)" || true
+  touch "$SESSION_FLAG"
+fi
+
+# 게시 전 마지막 방어선. 두 단계는 관심사가 다르다:
+#   redact_secrets            — 자격증명이 채널로 나가는 것을 막는다
+#   neutralize_slack_controls — 주입된 답변이 채널 전체를 핑하거나
+#                               피싱 링크를 심는 것을 막는다
+# 순서 주의: 중립화를 먼저 하면 자격증명 판정이 흐려진다. redact 먼저.
+REDACTED="$(printf '%s' "$RAW" | redact_secrets)"
+if [ "$REDACTED" != "$RAW" ]; then
+  echo "warn: redacted credential-shaped content from answer (ts=$TS)" >&2
+fi
+ANSWER="$(printf '%s' "$REDACTED" | neutralize_slack_controls)"
+
+if [ -z "${ANSWER//[[:space:]]/}" ]; then
+  echo "warn: empty answer — not posting" >&2
+  exit 0
+fi
+
+TEXT="$(format_reply "$MSG_USER" "$ANSWER")"
+
+# 한글 payload 는 반드시 jq -n --arg 로 빌드한다 (셸 인라인 시 인코딩 에러).
+PAYLOAD="$(jq -n \
+  --arg channel "$CHANNEL" \
+  --arg thread_ts "$THREAD_TS" \
+  --arg text "$TEXT" \
+  '{channel:$channel, thread_ts:$thread_ts, text:$text}')"
+
+RESP="$(printf '%s' "$PAYLOAD" | curl -s -X POST \
+  -H "Authorization: Bearer $TOK" \
+  -H "Content-Type: application/json; charset=utf-8" \
+  --data @- "$API/chat.postMessage")"
+
+if [ "$(printf '%s' "$RESP" | jq -r '.ok')" != "true" ]; then
+  printf '%s' "$RESP" | jq '{ok, error}' >&2
+  exit 1
+fi
+echo "posted: $(printf '%s' "$RESP" | jq -r '.ts')"
