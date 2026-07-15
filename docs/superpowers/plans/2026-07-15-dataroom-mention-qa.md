@@ -489,25 +489,51 @@ $CONTEXT
 
 # cwd = asset repo → 그 프로젝트의 Claude 메모리가 자연 로드된다.
 # 최초 실행은 --session-id 로 생성, 재실행은 -r 로 resume (--session-id 는 생성 전용).
+#
+# stderr 를 RAW 에 섞지 않는다. RAW 는 공개 채널에 게시될 답변이므로,
+# claude 의 에러 메시지가 섞이면 그게 그대로 답변으로 게시된다.
+# 플래그 파일은 빠른 경로 힌트일 뿐 신뢰하지 않는다 — /tmp 는 주기적으로
+# 청소되므로 플래그와 실제 세션 상태가 양방향으로 어긋난다:
+#   플래그 있는데 세션 없음 → -r 실패 → 생성으로 폴백
+#   플래그 없는데 세션 있음 → --session-id 실패 → resume 로 폴백
 WORKDIR="/tmp/dataroom/$THREAD_TS"
 mkdir -p "$WORKDIR"
 SESSION_FLAG="$WORKDIR/.claude-session"
+CLAUDE_ERR="$WORKDIR/claude.err"
 if [ -f "$SESSION_FLAG" ]; then
-  RAW="$(cd "$ASSET" && claude -p "$PROMPT" -r "$uuid" 2>&1)" || true
+  RAW="$(cd "$ASSET" && claude -p "$PROMPT" -r "$uuid" 2>"$CLAUDE_ERR")"; RC=$?
+  if [ $RC -ne 0 ]; then
+    RAW="$(cd "$ASSET" && claude -p "$PROMPT" --session-id "$uuid" 2>"$CLAUDE_ERR")"; RC=$?
+  fi
 else
-  RAW="$(cd "$ASSET" && claude -p "$PROMPT" --session-id "$uuid" 2>&1)" || true
+  RAW="$(cd "$ASSET" && claude -p "$PROMPT" --session-id "$uuid" 2>"$CLAUDE_ERR")"; RC=$?
+  if [ $RC -ne 0 ]; then
+    RAW="$(cd "$ASSET" && claude -p "$PROMPT" -r "$uuid" 2>"$CLAUDE_ERR")"; RC=$?
+  fi
   touch "$SESSION_FLAG"
 fi
 
-# 게시 전 마지막 방어선. 에이전트가 무엇을 하든 자격증명은 채널로 나가지 못한다.
-ANSWER="$(printf '%s' "$RAW" | redact_secrets)"
+# claude 실패 시 절대 게시하지 않는다 (스펙: 실패면 로그만, 채널에 노이즈 금지).
+if [ $RC -ne 0 ]; then
+  echo "warn: claude failed (rc=$RC) — not posting. stderr:" >&2
+  cat "$CLAUDE_ERR" >&2
+  exit 0
+fi
+
+# 게시 전 마지막 방어선. 두 단계는 관심사가 다르다:
+#   redact_secrets           — 자격증명이 채널로 나가는 것을 막는다
+#   neutralize_slack_controls — 주입된 답변이 채널 전체를 핑하거나
+#                               피싱 링크를 심는 것을 막는다
+# 순서 주의: 중립화를 먼저 하면 자격증명 판정이 흐려진다. redact 먼저.
+REDACTED="$(printf '%s' "$RAW" | redact_secrets)"
+if [ "$REDACTED" != "$RAW" ]; then
+  echo "warn: redacted credential-shaped content from answer (ts=$TS)" >&2
+fi
+ANSWER="$(printf '%s' "$REDACTED" | neutralize_slack_controls)"
 
 if [ -z "${ANSWER//[[:space:]]/}" ]; then
   echo "warn: empty answer — not posting" >&2
   exit 0
-fi
-if [ "$ANSWER" != "$RAW" ]; then
-  echo "warn: redacted credential-shaped content from answer (ts=$TS)" >&2
 fi
 
 TEXT="$(format_reply "$MSG_USER" "$ANSWER")"
@@ -793,7 +819,17 @@ Expected: 테스트 `passed: 16  failed: 0`
 
 ## 롤백
 
-문제 시 n8n 에서 `Is Dataroom Mention` 노드를 **disable** 하면 Q&A 만 멈추고 기존 업무분류는 살아있다. `Switch` 의 `Mentioned` 규칙에서 `channel notEquals` 조건을 빼면 기존 app_mention 동작이 완전히 복구된다.
+**킬 스위치는 `Answer from Memory`(SSH) 노드를 disable 하는 것이다.** 그러면 Q&A 만 멈추고
+기존 업무분류는 그대로 살아있다.
+
+> ⚠️ `Is Dataroom Mention`(IF) 노드를 disable 하면 **안 된다.** n8n 에서 비활성 노드는 입력을
+> 그대로 출력으로 **통과시킨다.** IF 를 끄면 필터가 사라져서 *모든* dataroom 메시지가
+> `Answer from Memory` 로 흘러간다 — 멈추기는커녕 정반대가 된다.
+> (이 계획서 초안에 이 오류가 있었고, 구현 중 바로잡았다.)
+
+`Switch` 의 `Mentioned` 규칙에서 `channel notEquals` 조건을 빼면 기존 app_mention 동작이
+완전히 복구된다. 변경 전 스냅샷: `/tmp/dataroom-qa-backup/workflow-structure-before.json`,
+n8n 버전 이력은 `mcp__n8n-mcp__n8n_workflow_versions` 로 조회.
 
 ## 후속 (이번 범위 밖)
 
