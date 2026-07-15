@@ -107,11 +107,36 @@ $CONTEXT
 WORKDIR="/tmp/dataroom/$THREAD_TS"
 mkdir -p "$WORKDIR"
 SESSION_FLAG="$WORKDIR/.claude-session"
+
+# 플래그 파일은 '힌트'일 뿐 신뢰하지 않는다. WORKDIR 이 /tmp 아래라 macOS 가
+# 주기적으로 청소하고, 플래그와 실제 세션 상태는 양방향으로 어긋난다:
+#   플래그 있는데 세션 없음 → -r 실패 ("No conversation found")
+#   플래그 없는데 세션 있음 → --session-id 실패 ("session already exists")
+# 그래서 실패하면 반대 모드로 한 번 더 시도한다 (handle-slack-msg.sh 와 같은 패턴).
+# 이 구조를 "단순화" 해서 한쪽 모드만 남기지 말 것.
+#
+# stderr 를 RAW 에 합치지 않는 것이 핵심이다. RAW 는 그대로 공개 채널에
+# 게시되므로 반드시 순수 stdout 이어야 한다. 예전엔 2>&1 + || true 였고,
+# claude 오류 메시지가 봇 답변으로 #dataroom 에 게시됐다.
+CLAUDE_ERR="$WORKDIR/claude.err"
 if [ -f "$SESSION_FLAG" ]; then
-  RAW="$(cd "$ASSET" && claude -p "$PROMPT" -r "$uuid" 2>&1)" || true
+  RAW="$(cd "$ASSET" && claude -p "$PROMPT" -r "$uuid" 2>"$CLAUDE_ERR")"; RC=$?
+  if [ $RC -ne 0 ]; then   # 세션이 사라졌다 → 새로 만든다
+    RAW="$(cd "$ASSET" && claude -p "$PROMPT" --session-id "$uuid" 2>"$CLAUDE_ERR")"; RC=$?
+  fi
 else
-  RAW="$(cd "$ASSET" && claude -p "$PROMPT" --session-id "$uuid" 2>&1)" || true
+  RAW="$(cd "$ASSET" && claude -p "$PROMPT" --session-id "$uuid" 2>"$CLAUDE_ERR")"; RC=$?
+  if [ $RC -ne 0 ]; then   # 이미 존재하는 세션이다 → resume 한다
+    RAW="$(cd "$ASSET" && claude -p "$PROMPT" -r "$uuid" 2>"$CLAUDE_ERR")"; RC=$?
+  fi
   touch "$SESSION_FLAG"
+fi
+
+# claude 가 실패하면 아무것도 게시하지 않는다. 로그만 남긴다.
+if [ $RC -ne 0 ]; then
+  echo "warn: claude failed (rc=$RC) — not posting. stderr:" >&2
+  cat "$CLAUDE_ERR" >&2
+  exit 0
 fi
 
 # 게시 전 마지막 방어선. 두 단계는 관심사가 다르다:
