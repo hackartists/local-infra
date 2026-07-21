@@ -9,3 +9,6 @@
 /users/
 /certbot/
 /nginx/webroot/
+
+# OpenVPN PKI/keys — never commit
+/openvpn/

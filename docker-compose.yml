@@ -6,6 +6,17 @@ networks:
     external: true
 
 services:
+  # ollama runs natively on the host, not in a container. This socat proxy owns
+  # the `ollama` name on biyard-dev so every container on the network — including
+  # other compose projects — reaches it at http://ollama:11434 with no per-service
+  # config. To repoint it (host IP change, move to a GPU box, swap in a real
+  # ollama container), change only the target below.
+  ollama:
+    container_name: ollama
+    restart: always
+    image: alpine/socat
+    command: TCP-LISTEN:11434,fork,reuseaddr TCP:192.168.0.40:11434
+
   nginx:
     container_name: nginx
     restart: always
@@ -192,6 +203,30 @@ services:
   #     - ./summer-entrypoint.sh:/summer-entrypoint.sh
   #   working_dir: /home/summer/asset
   #   command: claude rc --name "Landing Wording UI" --permission-mode bypassPermissions
+
+  # VPN entrypoint into the biyard-dev network. Clients get a split tunnel
+  # (only 172.19.0.0/16 is routed) and DNS via dnsmasq → Docker embedded DNS,
+  # so services resolve by their container names (n8n, ollama, ...).
+  # Issue a client profile with: ./gen-vpn-client.sh <name>
+  openvpn:
+    container_name: openvpn
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile.openvpn
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun
+    sysctls:
+      net.ipv4.ip_forward: 1
+    ports:
+      - "1194:1194/udp"
+    volumes:
+      - ./openvpn:/etc/openvpn
+    environment:
+      OVPN_REMOTE: "vpn.miner.biyard.co 1194"
+      OVPN_PUSH_ROUTE: "172.19.0.0 255.255.0.0"
 
   certbot:
     container_name: certbot

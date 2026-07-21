@@ -3,7 +3,8 @@ FROM public.ecr.aws/sam/build-provided.al2023:latest
 
 RUN cd /root && \
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs > install.sh && \
-    sh install.sh -y
+    sh install.sh -y && \
+    dnf install dotnet-sdk-10.0 openssl-devel docker gcc gcc-c++ make cmake git diffutils patch binutils libcurl-devel pkgconf-pkg-config -y
 
 RUN mkdir -p /usr/libexec/docker/cli-plugins/ && \
     curl -SL "https://github.com/docker/compose/releases/latest/download/docker-compose-linux-$(uname -m)" -o /usr/libexec/docker/cli-plugins/docker-compose && \
