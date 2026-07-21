@@ -1,0 +1,56 @@
+FROM ubuntu:24.04
+
+ARG RUNNER_VERSION=2.335.1
+ARG RUNNER_ARCH=arm64
+ARG RUNNER_NAME
+ARG LABELS
+ARG RUNNER_TOKEN
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    curl \
+    git \
+    gnupg \
+    jq \
+    openssh-client \
+    sudo \
+    tar \
+    unzip \
+  && install -m 0755 -d /etc/apt/keyrings \
+  && curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
+    | gpg --batch --yes --no-tty --dearmor -o /etc/apt/keyrings/docker.gpg \
+  && chmod a+r /etc/apt/keyrings/docker.gpg \
+  && . /etc/os-release \
+  && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu ${VERSION_CODENAME} stable" \
+    > /etc/apt/sources.list.d/docker.list \
+  && apt-get update \
+  && apt-get install -y --no-install-recommends \
+    docker-buildx-plugin \
+    docker-ce-cli \
+  && rm -rf /var/lib/apt/lists/*
+
+RUN cd /root && \
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs > install.sh && \
+    sh install.sh -y
+
+RUN curl -fsSL -o awscliv2.zip "https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip"; \
+  unzip -q awscliv2.zip; \
+  ./aws/install; \
+  rm -rf aws awscliv2.zip; \
+  aws --version
+
+ENV PATH="/root/.cargo/bin:${PATH}"
+ENV RUNNER_ALLOW_RUNASROOT=true
+WORKDIR /root/$RUNNER_NAME
+
+RUN curl -fsSL -o actions-runner.tar.gz \
+    "https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/actions-runner-linux-${RUNNER_ARCH}-${RUNNER_VERSION}.tar.gz" \
+  && tar xzf actions-runner.tar.gz \
+  && rm actions-runner.tar.gz \
+  && ./bin/installdependencies.sh \
+  && ./config.sh --url https://github.com/biyard --token $RUNNER_TOKEN --labels $LABELS --name $RUNNER_NAME
+
+CMD ["/bin/bash", "-c", "./run.sh"]

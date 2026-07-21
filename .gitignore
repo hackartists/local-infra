@@ -1,1 +1,14 @@
 /github/
+
+# Runtime data and secrets — never commit
+/.n8n/
+/.claude/
+/action-runners/
+/asset-runner/
+/runners/
+/users/
+/certbot/
+/nginx/webroot/
+
+# OpenVPN PKI/keys — never commit
+/openvpn/

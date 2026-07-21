@@ -1,4 +1,22 @@
+# Shared with other compose projects (e.g. users/*/asset).
+# Create once with: docker network create biyard-dev
+networks:
+  default:
+    name: biyard-dev
+    external: true
+
 services:
+  # ollama runs natively on the host, not in a container. This socat proxy owns
+  # the `ollama` name on biyard-dev so every container on the network — including
+  # other compose projects — reaches it at http://ollama:11434 with no per-service
+  # config. To repoint it (host IP change, move to a GPU box, swap in a real
+  # ollama container), change only the target below.
+  ollama:
+    container_name: ollama
+    restart: always
+    image: alpine/socat
+    command: TCP-LISTEN:11434,fork,reuseaddr TCP:192.168.0.40:11434
+
   nginx:
     container_name: nginx
     restart: always
@@ -22,13 +40,16 @@ services:
     image: public.ecr.aws/sam/build-provided.al2023:latest
     volumes:
       - ./nginx/webroot:/root/nginx
-    working_dir: /root/actions-runner
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./runners/runner1:/root/runner
+      - ./runner-entrypoint.sh:/root/runner-entrypoint.sh
+    environment:
+      RUNNER_NAME: runner1
+      RUNNER_TOKEN: ACAM5BZNVBHWU5EVBQ7A6XDKK6HQ4
+      LABELS: linux,arm64,docker
     build:
       context: .
       dockerfile: Dockerfile.runner
-      args:
-        RUNNER_TOKEN: ACAM5B74RV4VUHLY3V6XTUDKF6S5Q
-        LABELS: linux,arm64,asset
 
   runner2:
     container_name: runner2
@@ -36,14 +57,16 @@ services:
     image: public.ecr.aws/sam/build-provided.al2023:latest
     volumes:
       - ./nginx/webroot:/root/nginx
-    working_dir: /root/runner2
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./runners/runner2:/root/runner
+      - ./runner-entrypoint.sh:/root/runner-entrypoint.sh
+    environment:
+      RUNNER_NAME: runner2
+      RUNNER_TOKEN: ACAM5B5CLGW2K3XGWLG57DLKK6HVO
+      LABELS: linux,arm64,docker
     build:
       context: .
       dockerfile: Dockerfile.runner
-      args:
-        RUNNER_NAME: runner2
-        RUNNER_TOKEN: ACAM5B3ZOFH3QXCD3DHBIFDKF6THO
-        LABELS: linux,arm64
 
   runner3:
     container_name: runner3
@@ -51,14 +74,16 @@ services:
     image: public.ecr.aws/sam/build-provided.al2023:latest
     volumes:
       - ./nginx/webroot:/root/nginx
-    working_dir: /root/runner3
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./runners/runner3:/root/runner
+      - ./runner-entrypoint.sh:/root/runner-entrypoint.sh
+    environment:
+      RUNNER_NAME: runner3
+      RUNNER_TOKEN: ACAM5B2RJCG3OPBG22FZWCLKK6HZU
+      LABELS: linux,arm64,docker
     build:
       context: .
       dockerfile: Dockerfile.runner
-      args:
-        RUNNER_NAME: runner3
-        RUNNER_TOKEN: ACAM5B2RJ5HYEZTKJR7QS5DKF6VJK
-        LABELS: linux,arm64
 
   runner4:
     container_name: runner4
@@ -66,14 +91,16 @@ services:
     image: public.ecr.aws/sam/build-provided.al2023:latest
     volumes:
       - ./nginx/webroot:/root/nginx
-    working_dir: /root/runner4
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./runners/runner4:/root/runner
+      - ./runner-entrypoint.sh:/root/runner-entrypoint.sh
+    environment:
+      RUNNER_NAME: runner4
+      RUNNER_TOKEN: ACAM5B5S5ORJ5FHZWEIFXPDKK6H4G
+      LABELS: linux,arm64,docker
     build:
       context: .
       dockerfile: Dockerfile.runner
-      args:
-        RUNNER_NAME: runner4
-        RUNNER_TOKEN: ACAM5B3AAJVQH32IF6HM7FDKF7LE2
-        LABELS: linux,arm64
 
   runner5:
     container_name: runner5
@@ -81,14 +108,16 @@ services:
     image: public.ecr.aws/sam/build-provided.al2023:latest
     volumes:
       - ./nginx/webroot:/root/nginx
-    working_dir: /root/runner5
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./runners/runner5:/root/runner
+      - ./runner-entrypoint.sh:/root/runner-entrypoint.sh
+    environment:
+      RUNNER_NAME: runner5
+      RUNNER_TOKEN: ACAM5B2S6NBQCNG5LODGW33KK6H6A
+      LABELS: linux,arm64,docker
     build:
       context: .
       dockerfile: Dockerfile.runner
-      args:
-        RUNNER_NAME: runner5
-        RUNNER_TOKEN: ACAM5B6KK4MCYVY4RTYV7FLKF7LIM
-        LABELS: linux,arm64
 
   runner6:
     container_name: runner6
@@ -96,14 +125,16 @@ services:
     image: public.ecr.aws/sam/build-provided.al2023:latest
     volumes:
       - ./nginx/webroot:/root/nginx
-    working_dir: /root/runner6
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./runners/runner6:/root/runner
+      - ./runner-entrypoint.sh:/root/runner-entrypoint.sh
+    environment:
+      RUNNER_NAME: runner6
+      RUNNER_TOKEN: ACAM5B62URSNNOO4OV4SPTDKK6H7W
+      LABELS: linux,arm64,docker
     build:
       context: .
       dockerfile: Dockerfile.runner
-      args:
-        RUNNER_NAME: runner6
-        RUNNER_TOKEN: ACAM5BZEIN6JWOH7MS5UPIDKF7LLE
-        LABELS: linux,arm64
 
   runner7:
     restart: always
@@ -111,15 +142,16 @@ services:
     volumes:
       - ./nginx/webroot:/root/nginx
       - /var/run/docker.sock:/var/run/docker.sock
+      - ./runners/runner7:/root/runner
+      - ./runner-entrypoint.sh:/root/runner-entrypoint.sh
     container_name: runner7
-    working_dir: /root/runner7
+    environment:
+      RUNNER_NAME: runner7
+      RUNNER_TOKEN: ACAM5B3EOGD5VAJEACQKQ7LKK6IBA
+      LABELS: linux,arm64,docker
     build:
       context: .
       dockerfile: Dockerfile.runner
-      args:
-        RUNNER_NAME: runner7
-        RUNNER_TOKEN: ACAM5B4QJVIEKMZU3W6U7VDKJXFEU
-        LABELS: ubuntu,linux,arm64,docker
 
   runner8:
     restart: always
@@ -127,15 +159,16 @@ services:
     volumes:
       - ./nginx/webroot:/root/nginx
       - /var/run/docker.sock:/var/run/docker.sock
+      - ./runners/runner8:/root/runner
+      - ./runner-entrypoint.sh:/root/runner-entrypoint.sh
     container_name: runner8
-    working_dir: /root/runner8
+    environment:
+      RUNNER_NAME: runner8
+      RUNNER_TOKEN: ACAM5BYMGPTWAVAPHHSHE73KK6ICQ
+      LABELS: linux,arm64,docker
     build:
       context: .
       dockerfile: Dockerfile.runner
-      args:
-        RUNNER_NAME: runner8
-        RUNNER_TOKEN: ACAM5BYLY3JKVEZJ6QJWPBDKJXFMG
-        LABELS: ubuntu,linux,arm64,docker
 
   runner9:
     restart: always
@@ -143,32 +176,57 @@ services:
     volumes:
       - ./nginx/webroot:/root/nginx
       - /var/run/docker.sock:/var/run/docker.sock
+      - ./runners/runner9:/root/runner
+      - ./runner-entrypoint.sh:/root/runner-entrypoint.sh
     container_name: runner9
-    working_dir: /root/runner9
+    environment:
+      RUNNER_NAME: runner9
+      RUNNER_TOKEN: ACAM5B4ZFIOH5PU4OFEGBC3KK6IEA
+      LABELS: linux,arm64,docker
     build:
       context: .
       dockerfile: Dockerfile.runner
-      args:
-        RUNNER_NAME: runner9
-        RUNNER_TOKEN: ACAM5B57FIRZEMPKIUY4ZWDKJXFPC
-        LABELS: ubuntu,linux,arm64,docker
 
-  summer:
-    container_name: summer
+  # summer:
+  #   container_name: summer
+  #   restart: always
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.user
+  #     args:
+  #       USERNAME: summer
+  #   environment:
+  #     PORT: 18080
+  #   volumes:
+  #     - ./users/summer:/home/summer
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #     - ./summer-entrypoint.sh:/summer-entrypoint.sh
+  #   working_dir: /home/summer/asset
+  #   command: claude rc --name "Landing Wording UI" --permission-mode bypassPermissions
+
+  # VPN entrypoint into the biyard-dev network. Clients get a split tunnel
+  # (only 172.19.0.0/16 is routed) and DNS via dnsmasq → Docker embedded DNS,
+  # so services resolve by their container names (n8n, ollama, ...).
+  # Issue a client profile with: ./gen-vpn-client.sh <name>
+  openvpn:
+    container_name: openvpn
     restart: always
     build:
       context: .
-      dockerfile: Dockerfile.user
-      args:
-        USERNAME: summer
-    environment:
-      PORT: 18080
+      dockerfile: Dockerfile.openvpn
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun
+    sysctls:
+      net.ipv4.ip_forward: 1
+    ports:
+      - "1194:1194/udp"
     volumes:
-      - ./users/summer:/home/summer
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ./summer-entrypoint.sh:/summer-entrypoint.sh
-    working_dir: /home/summer/asset
-    command: claude rc --name "Landing Wording UI" --permission-mode bypassPermissions
+      - ./openvpn:/etc/openvpn
+    environment:
+      OVPN_REMOTE: "vpn.miner.biyard.co 1194"
+      OVPN_PUSH_ROUTE: "172.19.0.0 255.255.0.0"
 
   certbot:
     container_name: certbot

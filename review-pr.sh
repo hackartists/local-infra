@@ -1,36 +1,36 @@
-#!/usr/homebrew/bin/zsh
-
-source /home/hackartist/.zshrc
+#!/bin/zsh
+source /Users/hackartist/.zshrc
 
 PR_NUMBER=$1
 PR_URL=$2
 SSH_URL=$3
 BRANCH=$4
 
-WORKING_DIR=$(pwd)/github/$PR_NUMBER
+WORKING_DIR="$(pwd)/github/$PR_NUMBER"
 
-mkdir -p $WORKING_DIR
+mkdir -p "$WORKING_DIR"
 
-cd $WORKING_DIR
+cd "$WORKING_DIR" || exit 1
 CLONE_DIR=review
 
 timeout=600
 interval=30
 elapsed=0
 
-while [ $elapsed -lt $timeout ]; do
+while [ "$elapsed" -lt "$timeout" ]; do
     if [ ! -d "$CLONE_DIR" ]; then
         echo "$CLONE_DIR does not exist, proceeding to review the PR..."
         break
     fi
     echo "Other process is reviewing the PR, waiting for $interval seconds..."
-    sleep $interval
+    sleep "$interval"
     elapsed=$((elapsed + interval))
 done
+export GIT_SSH_COMMAND="ssh -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes"
 
-git clone --depth 50 --branch $BRANCH $SSH_URL $CLONE_DIR
+git clone --depth 50 --branch "$BRANCH" "$SSH_URL" "$CLONE_DIR"
 
-cd $CLONE_DIR
+cd "$CLONE_DIR" || exit 1
 
 claude -p "Review the pull request $PR_URL. Use 'gh pr diff $PR_NUMBER' to get the full diff and read the surrounding code in this checkout for context. Focus on real problems, not style nits or praise. Check the following:
 
@@ -50,5 +50,5 @@ where <owner>/<repo> is the base repository taken from $PR_URL (do NOT rely on t
 - If there are no significant issues, submit the review with a short body saying the changes look good and no inline comments.
 - End the review body with 'Generated with [Claude Code](https://claude.com/claude-code)'."
 
-cd $WORKING_DIR
-sudo rm -rf $CLONE_DIR
+cd "$WORKING_DIR" || exit 1
+sudo rm -rf "$CLONE_DIR"

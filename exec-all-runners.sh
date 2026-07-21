@@ -1,0 +1,9 @@
+docker exec -it runner1 $@
+docker exec -it runner2 $@
+docker exec -it runner3 $@
+docker exec -it runner4 $@
+docker exec -it runner5 $@
+docker exec -it runner6 $@
+docker exec -it runner7 $@
+docker exec -it runner8 $@
+docker exec -it runner9 $@
