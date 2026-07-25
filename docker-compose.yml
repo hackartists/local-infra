@@ -6,6 +6,134 @@ networks:
     external: true
 
 services:
+  minio:
+    image: minio/minio:latest
+    restart: always
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      # The Rust clients send these as AWS creds (samples' AWS_ACCESS_KEY_ID /
+      # AWS_SECRET_ACCESS_KEY must match — MinIO validates them, unlike
+      # LocalStack which ignored credential values).
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+      # Web console is served through nginx at http://s3.local.biyard.co:8080
+      # (no host port of its own — see infra/nginx/nginx.conf).
+      MINIO_BROWSER_REDIRECT_URL: http://s3.local.biyard.co:${NGINX_HOST_PORT:-8080}
+    # No host ports: S3 traffic (incl. browser presigned PUT/GET) goes through
+    # nginx :8080 via the /assets-local-* path-style locations.
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 10s
+    volumes:
+      - ./infra/minio:/data
+
+  # One-shot bucket provisioning (mirrors what localstack-init used to create:
+  # uploads bucket + doc-converter temp bucket with 1-day expiry). Browser
+  # presigned PUTs work without CORS setup — MinIO allows all origins by
+  # default (MINIO_API_CORS_ALLOW_ORIGIN=*).
+  minio-init:
+    image: minio/mc:latest
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - >
+        mc alias set local http://minio:9000 minioadmin minioadmin &&
+        mc mb -p local/assets-local-uploads &&
+        mc mb -p local/assets-local-doc-converter-temp &&
+        (mc ilm rule add --expire-days 1 local/assets-local-doc-converter-temp || true)
+    depends_on:
+      minio:
+        condition: service_healthy
+
+  # ── Postgres — primary datastore (single-table DDB → Postgres migration) ───
+  # The server bootstraps its schema on startup (storage/schema_bootstrap.rs);
+  # this just provides the instance. Credentials mirror server/src/config/
+  # postgres.rs defaults (asset/asset/asset, db `asset`).
+  postgres:
+    hostname: postgres
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-asset}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-asset}
+      POSTGRES_DB: ${POSTGRES_DB:-asset}
+    # The one non-nginx host port kept: `make test-pg-server` / `make test-pg`
+    # run cargo on the HOST against this DB (non-HTTP, can't ride nginx).
+    ports:
+      - "${POSTGRES_HOST_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U asset -d asset"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 10s
+    volumes:
+      - ./infra/postgres:/var/lib/postgresql/data
+
+  # ── pgweb — Postgres admin web UI ──────────────────────────────────────────
+  # Served through nginx at http://pg.local.biyard.co:8080 (no host port).
+  # Auto-connects to the dev database.
+  pgweb:
+    image: adminer:latest
+    restart: always
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    restart: always
+    volumes:
+      - ./infra/qdrant:/qdrant/storage
+
+  redpanda:
+    image: docker.redpanda.com/redpandadata/redpanda:latest
+    restart: always
+    command:
+      - redpanda
+      - start
+      - --overprovisioned
+      - --smp
+      - "1"
+      - --memory
+      - 512M
+      - --reserve-memory
+      - 0M
+      - --node-id
+      - "0"
+      - --check=false
+      # 파이프라인 토픽을 produce 시 자동 생성(로컬 편의). 없으면 워커 consumer 가
+      # 토픽 없음(UnknownTopicOrPartition)으로 첫 메시지 전까지 에러 루프.
+      - --set
+      - redpanda.auto_create_topics_enabled=true
+      - --kafka-addr
+      - internal://0.0.0.0:9092,external://0.0.0.0:19092
+      - --advertise-kafka-addr
+      - internal://redpanda:9092,external://127.0.0.1:${REDPANDA_HOST_PORT:-9092}
+    # No host port — consumers run inside the compose network (redpanda:9092).
+    # To debug from the host temporarily, re-add:
+    #   ports: ["${REDPANDA_HOST_PORT:-9092}:19092"]
+    volumes:
+      - ./infra/redpanda:/var/lib/redpanda/data
+
+  # ── Redpanda Console — Kafka admin web UI ──────────────────────────────────
+  # Served through nginx at http://redpanda.local.biyard.co:8080 (no host port).
+  # Topics, messages, consumer groups; admin API for cluster/broker info.
+  redpanda-console:
+    image: docker.redpanda.com/redpandadata/console:latest
+    restart: always
+    environment:
+      KAFKA_BROKERS: redpanda:9092
+      REDPANDA_ADMINAPI_ENABLED: "true"
+      REDPANDA_ADMINAPI_URLS: http://redpanda:9644
+    depends_on:
+      redpanda:
+        condition: service_started
+
   # ollama runs natively on the host, not in a container. This socat proxy owns
   # the `ollama` name on biyard-dev so every container on the network — including
   # other compose projects — reaches it at http://ollama:11434 with no per-service
@@ -15,7 +143,16 @@ services:
     container_name: ollama
     restart: always
     image: alpine/socat
-    command: TCP-LISTEN:11434,fork,reuseaddr TCP:192.168.0.40:11434
+    command: TCP-LISTEN:11434,fork,reuseaddr TCP:host.docker.internal:11434
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    restart: always
+    environment:
+      OLLAMA_BASE_URL: http://ollama:11434
+      WEBUI_AUTH: "False"
+    volumes:
+      - ./infra/ollama:/app/backend/data
 
   nginx:
     container_name: nginx

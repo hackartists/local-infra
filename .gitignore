@@ -12,3 +12,4 @@
 
 # OpenVPN PKI/keys — never commit
 /openvpn/
+/infra/
