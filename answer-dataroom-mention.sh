@@ -120,14 +120,14 @@ SESSION_FLAG="$WORKDIR/.claude-session"
 # claude 오류 메시지가 봇 답변으로 #dataroom 에 게시됐다.
 CLAUDE_ERR="$WORKDIR/claude.err"
 if [ -f "$SESSION_FLAG" ]; then
-  RAW="$(cd "$ASSET" && claude -p "$PROMPT" -r "$uuid" 2>"$CLAUDE_ERR")"; RC=$?
+  RAW="$(cd "$ASSET" && claude --model sonnet -p "$PROMPT" -r "$uuid" 2>"$CLAUDE_ERR")"; RC=$?
   if [ $RC -ne 0 ]; then   # 세션이 사라졌다 → 새로 만든다
-    RAW="$(cd "$ASSET" && claude -p "$PROMPT" --session-id "$uuid" 2>"$CLAUDE_ERR")"; RC=$?
+    RAW="$(cd "$ASSET" && claude --model sonnet -p "$PROMPT" --session-id "$uuid" 2>"$CLAUDE_ERR")"; RC=$?
   fi
 else
-  RAW="$(cd "$ASSET" && claude -p "$PROMPT" --session-id "$uuid" 2>"$CLAUDE_ERR")"; RC=$?
+  RAW="$(cd "$ASSET" && claude --model sonnet -p "$PROMPT" --session-id "$uuid" 2>"$CLAUDE_ERR")"; RC=$?
   if [ $RC -ne 0 ]; then   # 이미 존재하는 세션이다 → resume 한다
-    RAW="$(cd "$ASSET" && claude -p "$PROMPT" -r "$uuid" 2>"$CLAUDE_ERR")"; RC=$?
+    RAW="$(cd "$ASSET" && claude --model sonnet -p "$PROMPT" -r "$uuid" 2>"$CLAUDE_ERR")"; RC=$?
   fi
   touch "$SESSION_FLAG"
 fi

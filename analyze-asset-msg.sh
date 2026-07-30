@@ -87,9 +87,9 @@ $MSG_TEXT
 # already exists we must resume it with -r instead.
 SESSION_FLAG="$WORKDIR/.claude-session"
 if [ -f "$SESSION_FLAG" ]; then
-  RAW="$(claude -p "$PROMPT" -r "$uuid" 2>&1)" || true
+  RAW="$(claude --model sonnet -p "$PROMPT" -r "$uuid" 2>&1)" || true
 else
-  RAW="$(claude -p "$PROMPT" --session-id "$uuid" 2>&1)" || true
+  RAW="$(claude --model sonnet -p "$PROMPT" --session-id "$uuid" 2>&1)" || true
   touch "$SESSION_FLAG"
 fi
 echo "$RAW"

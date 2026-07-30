@@ -8,5 +8,5 @@ cd /tmp/slack/$MSG_ID
 
 uuid=`python3 -c 'import uuid, sys; print(uuid.uuid3(uuid.NAMESPACE_DNS, sys.argv[1]))' "$MSG_ID"`
 
-claude -p "Create github issue for $MSG_ID slack message. Then reply the github issue link to $MSG_ID slack message" --session-id $uuid
+claude --model sonnet -p "Create github issue for $MSG_ID slack message. Then reply the github issue link to $MSG_ID slack message" --session-id $uuid
 
