@@ -12,5 +12,5 @@ PROMPT="Check and handle slack message $MSG_ID. Then, reply results to $MSG_ID"
 
 # Resume the deterministic session for this message if it exists,
 # otherwise start a new session with that id.
-claude -p "$PROMPT" -r "$uuid" || claude -p "$PROMPT" --session-id "$uuid"
+claude --model sonnet -p "$PROMPT" -r "$uuid" || claude --model sonnet -p "$PROMPT" --session-id "$uuid"
 

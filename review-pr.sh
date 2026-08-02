@@ -3,36 +3,16 @@ source /Users/hackartist/.zshrc
 
 PR_NUMBER=$1
 PR_URL=$2
-SSH_URL=$3
-BRANCH=$4
 
-WORKING_DIR="$(pwd)/github/$PR_NUMBER"
+ASSET_REPO="$HOME/data/devel/github.com/biyard/asset"
 
-mkdir -p "$WORKING_DIR"
+# Review the PR remotely from the existing asset checkout: no clone, no worktree.
+# `gh pr diff` fetches the diff over the API and the base checkout supplies the
+# surrounding-code context. This avoids the permission error a fresh clone hit.
+cd "$ASSET_REPO" || exit 1
+echo "Reviewing PR $PR_NUMBER from $PR_URL in $ASSET_REPO"
 
-cd "$WORKING_DIR" || exit 1
-CLONE_DIR=review
-
-timeout=600
-interval=30
-elapsed=0
-
-while [ "$elapsed" -lt "$timeout" ]; do
-    if [ ! -d "$CLONE_DIR" ]; then
-        echo "$CLONE_DIR does not exist, proceeding to review the PR..."
-        break
-    fi
-    echo "Other process is reviewing the PR, waiting for $interval seconds..."
-    sleep "$interval"
-    elapsed=$((elapsed + interval))
-done
-export GIT_SSH_COMMAND="ssh -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes"
-
-git clone --depth 50 --branch "$BRANCH" "$SSH_URL" "$CLONE_DIR"
-
-cd "$CLONE_DIR" || exit 1
-
-claude -p "Review the pull request $PR_URL. Use 'gh pr diff $PR_NUMBER' to get the full diff and read the surrounding code in this checkout for context. Focus on real problems, not style nits or praise.
+claude --model sonnet -p "Review the pull request $PR_URL. Use 'gh pr diff $PR_NUMBER' to get the full diff and read the surrounding code in this checkout for context. Focus on real problems, not style nits or praise.
 
 FIRST, load this checkout's own conventions before reviewing anything:
 - Read CLAUDE.md at the repo root (and AGENTS.md if it exists).
@@ -67,6 +47,3 @@ where <owner>/<repo> is the base repository taken from $PR_URL (do NOT rely on t
 - The 'body' is the overall assessment of the PR: what it does, whether the approach is sound, cross-cutting concerns (design, data modeling, duplication), and a severity-ordered summary of the inline findings.
 - If there are no significant issues, submit the review with a short body saying the changes look good and no inline comments.
 - End the review body with 'Generated with [Claude Code](https://claude.com/claude-code)'."
-
-cd "$WORKING_DIR" || exit 1
-sudo rm -rf "$CLONE_DIR"

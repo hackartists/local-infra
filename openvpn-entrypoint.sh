@@ -24,8 +24,18 @@ OVPN_NETMASK="${OVPN_NETMASK:-255.255.255.0}"
 OVPN_GATEWAY="${OVPN_GATEWAY:-10.8.0.1}"
 # Public endpoint clients connect to, as "host port".
 OVPN_REMOTE="${OVPN_REMOTE:-vpn.miner.biyard.co 1194}"
-# Docker network(s) routed to clients, as "network netmask".
+# Network(s) routed to clients, as "network netmask"; multiple entries are
+# separated by ';'. A single host is "<ip> 255.255.255.255".
 OVPN_PUSH_ROUTE="${OVPN_PUSH_ROUTE:-172.19.0.0 255.255.0.0}"
+
+push_routes() {
+  local IFS=';'
+  local route
+  for route in $OVPN_PUSH_ROUTE; do
+    route="$(echo "$route" | xargs)"
+    [ -n "$route" ] && echo "push \"route $route\""
+  done
+}
 
 init_pki() {
   if [ ! -f "$PKI_DIR/ca.crt" ]; then
@@ -59,7 +69,7 @@ data-ciphers AES-256-GCM:CHACHA20-POLY1305
 auth SHA256
 remote-cert-tls client
 
-push "route $OVPN_PUSH_ROUTE"
+$(push_routes)
 push "dhcp-option DNS $OVPN_GATEWAY"
 # Make split-DNS clients (OpenVPN Connect on macOS/iOS/Windows) send ALL
 # domains to the VPN DNS, not just VPN-scoped ones. Other clients ignore it.
@@ -117,6 +127,11 @@ persist-tun
 remote-cert-tls server
 data-ciphers AES-256-GCM:CHACHA20-POLY1305
 auth SHA256
+# Split tunnel: refuse any full-tunnel redirect, so only the pushed routes go
+# through the VPN and the client keeps its own default gateway. (Honoured by
+# the openvpn CLI; NetworkManager sets its own default route independently —
+# there you also need ipv4.never-default yes.)
+pull-filter ignore "redirect-gateway"
 verb 3
 <ca>
 $(cat "$PKI_DIR/ca.crt")

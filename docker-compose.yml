@@ -361,9 +361,12 @@ services:
       - "1194:1194/udp"
     volumes:
       - ./openvpn:/etc/openvpn
+      # Mounted rather than baked in, so entrypoint edits apply on restart
+      # without an image rebuild (the Dockerfile still COPYs it as a fallback).
+      - ./openvpn-entrypoint.sh:/usr/local/bin/openvpn-entrypoint.sh:ro
     environment:
       OVPN_REMOTE: "vpn.miner.biyard.co 1194"
-      OVPN_PUSH_ROUTE: "172.19.0.0 255.255.0.0"
+      OVPN_PUSH_ROUTE: "172.19.0.0 255.255.0.0;192.168.0.1 255.255.255.255;192.168.0.42 255.255.255.255"
 
   certbot:
     container_name: certbot
