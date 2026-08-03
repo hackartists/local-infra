@@ -6,5 +6,5 @@ cd "$(dirname "$0")"
 NAME="${1:?usage: $0 <client-name> [out.ovpn]}"
 OUT="${2:-$NAME.ovpn}"
 
-docker compose exec -T openvpn /usr/local/bin/openvpn-entrypoint.sh genclient "$NAME" > "$OUT"
+kubectl -n infra exec -i deploy/openvpn -- /usr/local/bin/openvpn-entrypoint.sh genclient "$NAME" > "$OUT"
 echo "wrote $OUT"

@@ -1,0 +1,6 @@
+apiVersion: v2
+name: host-ollama
+description: Selectorless Service forwarding to the Mac host's native ollama (mirrors the compose socat proxy)
+type: application
+version: 0.1.0
+appVersion: "0"

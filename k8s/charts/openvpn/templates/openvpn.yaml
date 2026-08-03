@@ -1,0 +1,65 @@
+# Holds the easy-rsa PKI + ta.key so client certs survive pod restarts.
+# Seeded once from the compose-era ./openvpn dir (see repo docs) so existing
+# client profiles stay valid.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: openvpn-data
+spec:
+  accessModes: ["ReadWriteOnce"]
+  storageClassName: {{ .Values.storageClass }}
+  resources:
+    requests:
+      storage: {{ .Values.storage }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: openvpn
+spec:
+  replicas: 1
+  # hostPort + RWO volume: never run two instances side by side
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: openvpn
+  template:
+    metadata:
+      labels:
+        app: openvpn
+    spec:
+      nodeSelector:
+{{ toYaml .Values.nodeSelector | indent 8 }}
+      containers:
+        - name: openvpn
+          image: {{ .Values.image }}
+          imagePullPolicy: IfNotPresent
+          # tun device + iptables NAT + ip_forward sysctl
+          securityContext:
+            privileged: true
+          ports:
+            - containerPort: 1194
+              hostPort: {{ .Values.hostPort }}
+              protocol: UDP
+          env:
+            - name: OVPN_REMOTE
+              value: {{ .Values.remote | quote }}
+            - name: OVPN_PUSH_ROUTE
+              value: {{ .Values.pushRoutes | quote }}
+            - name: OVPN_PUSH_DOMAIN
+              value: {{ .Values.pushDomains | quote }}
+            - name: OVPN_CLUSTER_DOMAINS
+              value: {{ .Values.clusterDomains | quote }}
+          livenessProbe:
+            exec:
+              command: ["pgrep", "openvpn"]
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          volumeMounts:
+            - name: data
+              mountPath: /etc/openvpn
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: openvpn-data

@@ -44,6 +44,15 @@ releases:
       - values/redpanda-console.yaml
     needs:
       - infra/redpanda
+  - name: openvpn
+    namespace: infra
+    chart: ./charts/openvpn
+  - name: n8n
+    namespace: infra
+    chart: ./charts/n8n
+  - name: host-ollama
+    namespace: infra
+    chart: ./charts/host-ollama
   - name: cert-manager
     namespace: cert-manager
     chart: jetstack/cert-manager

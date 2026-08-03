@@ -1,0 +1,6 @@
+apiVersion: v2
+name: n8n
+description: n8n workflow automation (mirrors compose n8n; sqlite on PVC)
+type: application
+version: 0.1.0
+appVersion: "1"

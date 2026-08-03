@@ -1,0 +1,13 @@
+nodeSelector:
+  kubernetes.io/hostname: lima-k3s-server
+
+image: docker.n8n.io/n8nio/n8n
+port: 9000
+# Mac nginx (n8n.conf) terminates TLS for n8n.hackartist.io and proxies here.
+nodePort: 30900
+storage: 5Gi
+storageClass: local-path
+
+domain: n8n.hackartist.io
+webhookUrl: https://n8n.hackartist.io/
+timezone: Asia/Seoul

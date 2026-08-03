@@ -161,6 +161,8 @@ services:
     ports:
       - "80:80"
       - "443:443"
+      # UDP relay to the in-cluster openvpn (k8s/charts/openvpn)
+      - "1194:1194/udp"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
@@ -168,8 +170,6 @@ services:
       - ./certbot/var:/var/lib/letsencrypt
       - ./certbot/webroot:/var/www/certbot:ro
       - ./nginx/webroot:/var/www/pr:ro
-    depends_on:
-      - n8n
 
   runner1:
     container_name: runner1
@@ -345,29 +345,6 @@ services:
   # (only 172.19.0.0/16 is routed) and DNS via dnsmasq → Docker embedded DNS,
   # so services resolve by their container names (n8n, ollama, ...).
   # Issue a client profile with: ./gen-vpn-client.sh <name>
-  openvpn:
-    container_name: openvpn
-    restart: always
-    build:
-      context: .
-      dockerfile: Dockerfile.openvpn
-    cap_add:
-      - NET_ADMIN
-    devices:
-      - /dev/net/tun
-    sysctls:
-      net.ipv4.ip_forward: 1
-    ports:
-      - "1194:1194/udp"
-    volumes:
-      - ./openvpn:/etc/openvpn
-      # Mounted rather than baked in, so entrypoint edits apply on restart
-      # without an image rebuild (the Dockerfile still COPYs it as a fallback).
-      - ./openvpn-entrypoint.sh:/usr/local/bin/openvpn-entrypoint.sh:ro
-    environment:
-      OVPN_REMOTE: "vpn.miner.biyard.co 1194"
-      OVPN_PUSH_ROUTE: "172.19.0.0 255.255.0.0;192.168.0.1 255.255.255.255;192.168.0.42 255.255.255.255"
-
   certbot:
     container_name: certbot
     image: certbot/certbot
@@ -376,22 +353,3 @@ services:
       - ./certbot/var:/var/lib/letsencrypt
       - ./certbot/webroot:/var/www/certbot
 
-  n8n:
-    container_name: n8n
-    restart: always
-    image: docker.n8n.io/n8nio/n8n
-    volumes:
-      - ./.n8n:/home/node/.n8n
-    environment:
-      N8N_SECURE_COOKIE: false
-      TZ: Asia/Seoul
-      DB_TYPE: "sqlite"
-      DB_SQLITE_DATABASE: "/home/node/.n8n/database.sqlite"
-      N8N_PORT: "9000"
-      EXECUTIONS_DATA_PRUNE: "true"
-      EXECUTIONS_DATA_MAX_AGE: "168"
-      GENERIC_TIMEZONE: "Asia/Seoul"
-      N8N_DOMAIN: "n8n.hackartist.io"
-      WEBHOOK_URL: https://n8n.hackartist.io/
-      N8N_PROXY_HOPS: 1
-      NODE_FUNCTION_ALLOW_BUILTIN: "*"
