@@ -37,6 +37,10 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: adminer
+{{- with .Values.adminer.ingress.annotations }}
+  annotations:
+{{ toYaml . | indent 4 }}
+{{- end }}
 spec:
   ingressClassName: {{ .Values.adminer.ingress.className }}
   tls:

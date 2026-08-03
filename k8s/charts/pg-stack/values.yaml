@@ -15,6 +15,12 @@ adminer:
   ingress:
     enabled: true
     className: nginx
+    # 공인망 무인증 노출 방지. Secret은 infra ns의 console-basic-auth 재사용
+    # — 생성 절차는 k8s/values/redpanda-console.yaml 주석 참조.
+    annotations:
+      nginx.ingress.kubernetes.io/auth-type: basic
+      nginx.ingress.kubernetes.io/auth-secret: console-basic-auth
+      nginx.ingress.kubernetes.io/auth-realm: "Restricted"
     hosts:
       - host: pg.miner.biyard.co
         tlsSecret: miner-biyard-co-tls

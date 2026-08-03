@@ -18,6 +18,12 @@ ingress:
   annotations:
     # 기존 nginx의 "/ → /dashboard" 리다이렉트 유지
     nginx.ingress.kubernetes.io/app-root: /dashboard
+    # 공인망 무인증 노출 방지: infra ns의 console-basic-auth Secret 재사용
+    # (생성 절차는 k8s/values/redpanda-console.yaml 주석 참조). REST API도
+    # 같은 ingress를 타므로 외부 API 클라이언트는 basic auth 헤더 필요.
+    nginx.ingress.kubernetes.io/auth-type: basic
+    nginx.ingress.kubernetes.io/auth-secret: console-basic-auth
+    nginx.ingress.kubernetes.io/auth-realm: "Restricted"
   hosts:
     - host: qdrant.miner.biyard.co
       paths:

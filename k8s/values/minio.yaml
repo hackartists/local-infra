@@ -22,6 +22,12 @@ environment:
 consoleIngress:
   enabled: true
   ingressClassName: nginx
+  # 공인망 무인증 노출 방지(콘솔 자체 로그인 앞단의 추가 게이트). Secret은
+  # infra ns의 console-basic-auth 재사용 — k8s/values/redpanda-console.yaml 참조.
+  annotations:
+    nginx.ingress.kubernetes.io/auth-type: basic
+    nginx.ingress.kubernetes.io/auth-secret: console-basic-auth
+    nginx.ingress.kubernetes.io/auth-realm: "Restricted"
   path: /
   hosts:
     - s3.miner.biyard.co
