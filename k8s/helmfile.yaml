@@ -53,6 +53,9 @@ releases:
   - name: host-ollama
     namespace: infra
     chart: ./charts/host-ollama
+  - name: registry
+    namespace: infra
+    chart: ./charts/registry
   - name: cert-manager
     namespace: cert-manager
     chart: jetstack/cert-manager
