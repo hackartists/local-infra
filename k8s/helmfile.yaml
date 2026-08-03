@@ -62,6 +62,9 @@ releases:
   - name: pr-webroot
     namespace: infra
     chart: ./charts/pr-webroot
+  - name: runners
+    namespace: infra
+    chart: ./charts/runners
   - name: cert-manager
     namespace: cert-manager
     chart: jetstack/cert-manager
