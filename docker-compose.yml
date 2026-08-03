@@ -154,22 +154,12 @@ services:
     volumes:
       - ./infra/ollama:/app/backend/data
 
-  nginx:
-    container_name: nginx
-    restart: always
-    image: nginx:alpine
-    ports:
-      - "80:80"
-      - "443:443"
-      # UDP relay to the in-cluster openvpn (k8s/charts/openvpn)
-      - "1194:1194/udp"
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/conf.d:/etc/nginx/conf.d:ro
-      - ./certbot/etc:/etc/letsencrypt:ro
-      - ./certbot/var:/var/lib/letsencrypt
-      - ./certbot/webroot:/var/www/certbot:ro
-      - ./nginx/webroot:/var/www/pr:ro
+  # nginx edge retired 2026-08-04: the router now forwards 80/443 (TCP) and
+  # 1194 (UDP, openvpn) straight to the k3s node (192.168.0.54); every vhost
+  # is served by ingress-nginx with cert-manager certs. Configs are kept in
+  # ./nginx for rollback (re-add the service + point the router back at the
+  # Mac). certbot is likewise obsolete for renewals (cert-manager owns all
+  # zones now) but its service block stays for manual one-offs.
 
   # summer:
   #   container_name: summer
