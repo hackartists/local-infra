@@ -1,0 +1,7 @@
+nodeSelector:
+  kubernetes.io/hostname: lima-k3s-server
+
+image: moby/buildkit:latest
+cacheSize: 50Gi
+storageClass: local-path
+nodePort: 31234

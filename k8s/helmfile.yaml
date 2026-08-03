@@ -56,6 +56,9 @@ releases:
   - name: registry
     namespace: infra
     chart: ./charts/registry
+  - name: buildkitd
+    namespace: infra
+    chart: ./charts/buildkitd
   - name: cert-manager
     namespace: cert-manager
     chart: jetstack/cert-manager
