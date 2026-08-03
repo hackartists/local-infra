@@ -1,0 +1,7 @@
+# /etc/rancher/k3s/registries.yaml — 양 노드 공통.
+# registry.dev.biyard.co pull을 클러스터 내부 registry로 직결(http, 무인증).
+# 적용 후 k3s(서버)/k3s-agent(파이) 서비스 재시작 필요.
+mirrors:
+  "registry.dev.biyard.co":
+    endpoint:
+      - "http://10.43.200.5:5000"

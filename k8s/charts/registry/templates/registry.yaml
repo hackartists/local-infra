@@ -52,6 +52,7 @@ kind: Service
 metadata:
   name: registry
 spec:
+  clusterIP: {{ .Values.clusterIP }}
   selector:
     app: registry
   ports:
