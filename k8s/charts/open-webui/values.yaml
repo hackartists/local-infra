@@ -1,0 +1,16 @@
+nodeSelector:
+  kubernetes.io/hostname: lima-k3s-server
+
+image: ghcr.io/open-webui/open-webui:main
+storage: 10Gi
+storageClass: local-path
+
+# infra ns의 selectorless `ollama` Service(host-ollama 차트)가 Mac host의
+# native ollama(11434)로 포워딩한다 — compose 시절과 동일한 이름.
+ollamaBaseUrl: http://ollama:11434
+
+ingress:
+  enabled: true
+  className: nginx
+  host: ollama.miner.biyard.co
+  tlsSecret: miner-biyard-co-tls

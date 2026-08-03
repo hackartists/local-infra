@@ -53,6 +53,9 @@ releases:
   - name: host-ollama
     namespace: infra
     chart: ./charts/host-ollama
+  - name: open-webui
+    namespace: infra
+    chart: ./charts/open-webui
   - name: registry
     namespace: infra
     chart: ./charts/registry
