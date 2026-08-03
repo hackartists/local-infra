@@ -23,3 +23,8 @@ releases:
     chart: ./charts/minio-init
     needs:
       - infra/minio
+  - name: qdrant
+    namespace: infra
+    chart: qdrant/qdrant
+    values:
+      - values/qdrant.yaml

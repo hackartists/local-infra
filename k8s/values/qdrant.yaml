@@ -1,0 +1,12 @@
+replicaCount: 1
+
+nodeSelector:
+  kubernetes.io/hostname: lima-k3s-server
+
+persistence:
+  size: 20Gi
+  storageClassName: local-path
+
+# Ingress는 Task 7에서 활성화
+ingress:
+  enabled: false
