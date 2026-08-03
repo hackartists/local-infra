@@ -1,0 +1,22 @@
+# Mac host에서 네이티브로 도는 프로세스들의 k3s ingress 프론트.
+# host-ollama와 같은 패턴: selector 없는 Service + 수동 EndpointSlice.
+# host IP가 바뀌면 hostIP 하나만 수정.
+hostIP: 192.168.0.42
+
+proxies:
+  - name: essence-host
+    host: essence.miner.biyard.co
+    port: 8081
+    tlsSecret: miner-biyard-co-tls
+  - name: asset-host
+    host: asset.miner.biyard.co
+    port: 8080
+    tlsSecret: miner-biyard-co-tls
+  - name: ratel-host
+    host: miner.ratel.foundation
+    port: 8080
+    tlsSecret: ratel-foundation-tls
+  - name: summer-host
+    host: summer.biyard.co
+    port: 18080
+    tlsSecret: biyard-co-tls

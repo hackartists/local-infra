@@ -1,0 +1,54 @@
+{{- range .Values.proxies }}
+---
+# No selector: endpoints are managed manually by the EndpointSlice below,
+# which points outside the cluster at the native process on the Mac host.
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .name }}
+spec:
+  ports:
+    - name: http
+      port: {{ .port }}
+      targetPort: {{ .port }}
+---
+apiVersion: discovery.k8s.io/v1
+kind: EndpointSlice
+metadata:
+  name: {{ .name }}
+  labels:
+    kubernetes.io/service-name: {{ .name }}
+addressType: IPv4
+ports:
+  - name: http
+    port: {{ .port }}
+    protocol: TCP
+endpoints:
+  - addresses:
+      - {{ $.Values.hostIP | quote }}
+    conditions:
+      ready: true
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .name }}
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 100m
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts: [{{ .host | quote }}]
+      secretName: {{ .tlsSecret }}
+  rules:
+    - host: {{ .host }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .name }}
+                port:
+                  number: {{ .port }}
+{{- end }}

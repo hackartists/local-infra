@@ -15,6 +15,10 @@ credentialsSecret: route53-credentials
 # the zone with dots replaced by dashes (miner.biyard.co → miner-biyard-co),
 # so keep zone spelling stable or cert-manager re-issues under a new name.
 certs:
+  # biyard.co(부모 존) solver는 selector가 더 구체적인 하위 존(miner/dev/pr)에
+  # 밀리므로, 아래 하위 존 항목들과 공존해도 서로 간섭하지 않는다.
+  - dnsZone: biyard.co
+    secretName: biyard-co-tls
   - dnsZone: miner.biyard.co
     secretName: miner-biyard-co-tls
   - dnsZone: dev.biyard.co
@@ -28,3 +32,6 @@ certs:
   - dnsZone: hackartist.io
     secretName: hackartist-io-tls
     credentialsSecret: route53-hackartist-credentials
+  # miner.ratel.foundation (host-proxies) 용 — 같은 biyard 계정 존
+  - dnsZone: ratel.foundation
+    secretName: ratel-foundation-tls
