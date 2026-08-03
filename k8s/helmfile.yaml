@@ -28,3 +28,15 @@ releases:
     chart: qdrant/qdrant
     values:
       - values/qdrant.yaml
+  - name: redpanda
+    namespace: infra
+    chart: redpanda/redpanda
+    values:
+      - values/redpanda.yaml
+  - name: redpanda-console
+    namespace: infra
+    chart: redpanda/console
+    values:
+      - values/redpanda-console.yaml
+    needs:
+      - infra/redpanda

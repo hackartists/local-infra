@@ -1,0 +1,24 @@
+# Redpanda Console for the single-node dev broker.
+#
+# The redpanda/redpanda chart (26.2.1) no longer ships a working in-chart
+# Console Deployment (console.deployment.create defaults to false), so
+# Console is deployed from the separate redpanda/console chart instead.
+# Points at the redpanda StatefulSet's headless service / pod-0 DNS name.
+
+replicaCount: 1
+
+nodeSelector:
+  kubernetes.io/hostname: lima-k3s-server
+
+config:
+  kafka:
+    brokers:
+      - redpanda-0.redpanda.infra.svc.cluster.local:9093
+  redpanda:
+    adminApi:
+      urls:
+        - http://redpanda-0.redpanda.infra.svc.cluster.local:9644
+
+# Ingress는 Task 7에서 활성화
+ingress:
+  enabled: false
