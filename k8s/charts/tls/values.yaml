@@ -21,3 +21,10 @@ certs:
     secretName: dev-biyard-co-tls
   - dnsZone: pr.biyard.co
     secretName: pr-biyard-co-tls
+  # hackartist.io는 다른 AWS 계정의 존 — 전용 자격증명 Secret 사용
+  # (cert-manager ns에 수동 생성, 레포에 값 없음):
+  #   kubectl -n cert-manager create secret generic route53-hackartist-credentials \
+  #     --from-literal=access-key-id='...' --from-literal=secret-access-key='...'
+  - dnsZone: hackartist.io
+    secretName: hackartist-io-tls
+    credentialsSecret: route53-hackartist-credentials

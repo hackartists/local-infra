@@ -9,17 +9,19 @@ spec:
     privateKeySecretRef:
       name: letsencrypt-route53-account
     solvers:
+      # 존별 solver — 존마다 다른 AWS 계정 키를 쓸 수 있도록 cert 항목의
+      # credentialsSecret(없으면 전역 기본값)을 참조한다.
+{{- range .Values.certs }}
       - selector:
           dnsZones:
-{{- range .Values.certs }}
             - {{ .dnsZone | quote }}
-{{- end }}
         dns01:
           route53:
-            region: {{ .Values.awsRegion }}
+            region: {{ .awsRegion | default $.Values.awsRegion }}
             accessKeyIDSecretRef:
-              name: {{ .Values.credentialsSecret }}
+              name: {{ .credentialsSecret | default $.Values.credentialsSecret }}
               key: access-key-id
             secretAccessKeySecretRef:
-              name: {{ .Values.credentialsSecret }}
+              name: {{ .credentialsSecret | default $.Values.credentialsSecret }}
               key: secret-access-key
+{{- end }}

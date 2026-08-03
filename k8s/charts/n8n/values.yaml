@@ -11,3 +11,11 @@ storageClass: local-path
 domain: n8n.hackartist.io
 webhookUrl: https://n8n.hackartist.io/
 timezone: Asia/Seoul
+
+# k3s ingress가 TLS 종단 (cert-manager의 *.hackartist.io 와일드카드).
+# Mac nginx는 SNI 패스스루만 수행.
+ingress:
+  enabled: true
+  className: nginx
+  host: n8n.hackartist.io
+  tlsSecret: hackartist-io-tls
