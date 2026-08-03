@@ -1,0 +1,11 @@
+nodeSelector:
+  kubernetes.io/hostname: lima-k3s-server
+
+storage: 50Gi
+storageClass: local-path
+
+ingress:
+  className: nginx
+  host: "*.pr.biyard.co"
+  tlsHost: "*.pr.biyard.co"
+  tlsSecret: pr-biyard-co-tls

@@ -19,3 +19,5 @@ certs:
     secretName: miner-biyard-co-tls
   - dnsZone: dev.biyard.co
     secretName: dev-biyard-co-tls
+  - dnsZone: pr.biyard.co
+    secretName: pr-biyard-co-tls

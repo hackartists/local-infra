@@ -59,6 +59,9 @@ releases:
   - name: buildkitd
     namespace: infra
     chart: ./charts/buildkitd
+  - name: pr-webroot
+    namespace: infra
+    chart: ./charts/pr-webroot
   - name: cert-manager
     namespace: cert-manager
     chart: jetstack/cert-manager

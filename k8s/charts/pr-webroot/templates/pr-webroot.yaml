@@ -1,0 +1,137 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pr-webroot
+spec:
+  accessModes: ["ReadWriteOnce"]
+  storageClassName: {{ .Values.storageClass }}
+  resources:
+    requests:
+      storage: {{ .Values.storage }}
+---
+# 구 nginx/conf.d/asset-pr.conf의 정적 서빙 규칙 이식.
+# - asset-report-<pr>: 정적 SPA
+# - <svc>-<pr>: 정적 SPA + /api → PROD https://<svc>.biyard.co (원 URI 유지)
+#   + /assets-local- → k3s minio (프리사인 업로드 Host 유지)
+# 구 asset-<pr> full-stack(compose e2e) 블록은 빅뱅으로 폐기 — generic 규칙으로 수렴.
+# essence-<pr> 등 per-PR full-stack은 각자 exact-host Ingress가 이 wildcard보다
+# 우선 매칭되므로 여기 올 일이 없다.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pr-nginx-conf
+data:
+  default.conf: |
+    server {
+        listen 80;
+        server_name ~^asset-report-(?<pr>\d+)\.pr\.biyard\.co$;
+        location / {
+            root /usr/share/nginx/html/asset-report-$pr;
+            try_files $uri $uri/ /index.html;
+        }
+    }
+    server {
+        listen 80;
+        server_name ~^(?<svc>[a-z0-9]+)-(?<pr>\d+)\.pr\.biyard\.co$;
+
+        resolver 8.8.8.8 1.1.1.1 valid=300s;
+        resolver_timeout 5s;
+
+        location /api/ {
+            set $api_backend "$svc.biyard.co";
+            proxy_pass https://$api_backend;
+            proxy_ssl_server_name on;
+            proxy_set_header Host $api_backend;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_set_header X-Forwarded-Host $host;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+        }
+
+        location /assets-local- {
+            proxy_pass http://minio.infra.svc.cluster.local:9000;
+            proxy_set_header Host $http_host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_http_version 1.1;
+            client_max_body_size 0;
+            proxy_request_buffering off;
+            proxy_buffering off;
+        }
+
+        location / {
+            root /usr/share/nginx/html/$svc-$pr;
+            try_files $uri $uri/ /index.html;
+        }
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pr-nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pr-nginx
+  template:
+    metadata:
+      labels:
+        app: pr-nginx
+    spec:
+      nodeSelector:
+{{ toYaml .Values.nodeSelector | indent 8 }}
+      containers:
+        - name: nginx
+          image: nginx:alpine
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: webroot
+              mountPath: /usr/share/nginx/html
+              readOnly: true
+            - name: conf
+              mountPath: /etc/nginx/conf.d
+      volumes:
+        - name: webroot
+          persistentVolumeClaim:
+            claimName: pr-webroot
+        - name: conf
+          configMap:
+            name: pr-nginx-conf
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pr-nginx
+spec:
+  selector:
+    app: pr-nginx
+  ports:
+    - port: 80
+      targetPort: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: pr-webroot
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  tls:
+    - hosts: [{{ .Values.ingress.tlsHost | quote }}]
+      secretName: {{ .Values.ingress.tlsSecret }}
+  rules:
+    - host: {{ .Values.ingress.host | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: pr-nginx
+                port:
+                  number: 80

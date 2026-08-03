@@ -1,0 +1,6 @@
+apiVersion: v2
+name: pr-webroot
+description: Per-PR static preview hosting (replaces Mac nginx asset-pr.conf static vhosts)
+type: application
+version: 0.1.0
+appVersion: "1"
