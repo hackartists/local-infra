@@ -1,0 +1,19 @@
+nodeSelector:
+  kubernetes.io/hostname: lima-k3s-server
+
+postgres:
+  image: postgres:16-alpine
+  user: asset
+  password: asset
+  db: asset
+  storage: 20Gi
+  storageClass: local-path
+  nodePort: 30432
+
+adminer:
+  image: adminer:latest
+  ingress:
+    enabled: false
+    host: pg.miner.biyard.co
+    className: nginx
+    tlsSecret: miner-biyard-co-tls

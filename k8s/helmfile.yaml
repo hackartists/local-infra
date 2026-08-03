@@ -9,4 +9,7 @@ repositories:
   - name: jetstack
     url: https://charts.jetstack.io
 
-releases: []
+releases:
+  - name: pg-stack
+    namespace: infra
+    chart: ./charts/pg-stack
