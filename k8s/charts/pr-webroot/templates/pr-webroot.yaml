@@ -44,7 +44,8 @@ data:
             proxy_set_header Host $api_backend;
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
+            # ingress가 TLS 종단 후 :80으로 프록시하므로 $scheme은 항상 http — 고정값 사용
+            proxy_set_header X-Forwarded-Proto https;
             proxy_set_header X-Forwarded-Host $host;
             proxy_http_version 1.1;
             proxy_set_header Upgrade $http_upgrade;
@@ -56,7 +57,8 @@ data:
             proxy_set_header Host $http_host;
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
+            # ingress가 TLS 종단 후 :80으로 프록시하므로 $scheme은 항상 http — 고정값 사용
+            proxy_set_header X-Forwarded-Proto https;
             proxy_http_version 1.1;
             client_max_body_size 0;
             proxy_request_buffering off;
@@ -119,6 +121,9 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: pr-webroot
+  annotations:
+    # 프리사인 업로드(/assets-local-)와 /api POST가 ingress 기본 1m 캡에 걸리지 않게
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
 spec:
   ingressClassName: {{ .Values.ingress.className }}
   tls:

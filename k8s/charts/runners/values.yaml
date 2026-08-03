@@ -1,7 +1,7 @@
 nodeSelector:
   kubernetes.io/hostname: lima-k3s-server
 
-image: registry.dev.biyard.co/infra/runner:v1
+image: registry.dev.biyard.co/infra/runner:v2
 # 컷오버(Task 6) 완료 — compose 러너 9개를 k3s StatefulSet으로 이관하여 9로 상향.
 replicas: 9
 stateSize: 20Gi

@@ -41,4 +41,6 @@ k3s 배포로 재작성한다.
 - 재등록이 필요할 때: 해당 PVC의 `.runner`/`.credentials*` 삭제 후 파드에
   `RUNNER_TOKEN` env를 임시 주입해 재기동
 - 롤백: sts 0으로 축소 → `docker-compose.yml`의 러너 블록 git revert → `docker compose up -d`
-  (`runners/` 원본 상태가 보존돼 있어 재등록 불필요)
+  (`runners/` 원본 상태가 보존돼 있어 재등록 불필요). PR 프리뷰까지 되돌리려면
+  `nginx/nginx.conf`의 `.pr.biyard.co k3s_ingress;` 줄 제거 후 일회용 컨테이너로
+  `nginx -t` 사전 검증 → `docker restart nginx` (단일 파일 마운트라 reload 불가).

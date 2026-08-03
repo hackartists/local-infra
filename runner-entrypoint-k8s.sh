@@ -7,14 +7,29 @@ ORDINAL=${HOSTNAME##*-}
 export RUNNER_NAME="runner$((ORDINAL + 1))"
 
 # Compat: some CI jobs read ~/.kube/config; synthesize one from the in-cluster SA.
+# tokenFile(프로젝티드 토큰 경로)을 참조해 kubelet의 토큰 로테이션을 그대로 따른다
+# (토큰 값을 박제하면 만료 유예에 의존하게 됨).
 if [ ! -f /root/.kube/config ] && [ -f /var/run/secrets/kubernetes.io/serviceaccount/token ]; then
-  kubectl config set-cluster incluster \
-    --server=https://kubernetes.default.svc \
-    --certificate-authority=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
-  kubectl config set-credentials runner-sa \
-    --token="$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)"
-  kubectl config set-context incluster --cluster=incluster --user=runner-sa
-  kubectl config use-context incluster
+  mkdir -p /root/.kube
+  cat > /root/.kube/config <<'KUBECONFIG'
+apiVersion: v1
+kind: Config
+clusters:
+  - name: incluster
+    cluster:
+      server: https://kubernetes.default.svc
+      certificate-authority: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+users:
+  - name: runner-sa
+    user:
+      tokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+contexts:
+  - name: incluster
+    context:
+      cluster: incluster
+      user: runner-sa
+current-context: incluster
+KUBECONFIG
 fi
 
 cd /root/runner
