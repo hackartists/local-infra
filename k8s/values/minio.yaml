@@ -1,0 +1,24 @@
+mode: standalone
+replicas: 1
+
+rootUser: minioadmin
+rootPassword: minioadmin
+
+persistence:
+  enabled: true
+  storageClass: local-path
+  size: 100Gi
+
+nodeSelector:
+  kubernetes.io/hostname: lima-k3s-server
+
+resources:
+  requests:
+    memory: 512Mi
+
+environment:
+  MINIO_BROWSER_REDIRECT_URL: https://s3.miner.biyard.co
+
+# Ingress는 Task 7에서 활성화
+consoleIngress:
+  enabled: false

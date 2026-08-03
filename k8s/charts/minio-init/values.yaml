@@ -1,0 +1,4 @@
+image: minio/mc:latest
+endpoint: http://minio:9000
+accessKey: minioadmin
+secretKey: minioadmin

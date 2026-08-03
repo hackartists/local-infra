@@ -1,0 +1,6 @@
+apiVersion: v2
+name: minio-init
+description: One-shot bucket + ilm provisioning (mirrors compose minio-init)
+type: application
+version: 0.1.0
+appVersion: "1"

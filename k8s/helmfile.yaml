@@ -13,3 +13,13 @@ releases:
   - name: pg-stack
     namespace: infra
     chart: ./charts/pg-stack
+  - name: minio
+    namespace: infra
+    chart: minio/minio
+    values:
+      - values/minio.yaml
+  - name: minio-init
+    namespace: infra
+    chart: ./charts/minio-init
+    needs:
+      - infra/minio

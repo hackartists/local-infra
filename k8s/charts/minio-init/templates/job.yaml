@@ -1,0 +1,22 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: minio-init
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation
+spec:
+  backoffLimit: 20
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: mc
+          image: {{ .Values.image }}
+          command: ["/bin/sh", "-c"]
+          args:
+            - >
+              mc alias set local {{ .Values.endpoint }} {{ .Values.accessKey }} {{ .Values.secretKey }} &&
+              mc mb -p local/assets-local-uploads &&
+              mc mb -p local/assets-local-doc-converter-temp &&
+              (mc ilm rule add --expire-days 1 local/assets-local-doc-converter-temp || true)
