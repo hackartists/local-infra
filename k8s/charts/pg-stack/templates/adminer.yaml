@@ -40,10 +40,13 @@ metadata:
 spec:
   ingressClassName: {{ .Values.adminer.ingress.className }}
   tls:
-    - hosts: [{{ .Values.adminer.ingress.host | quote }}]
-      secretName: {{ .Values.adminer.ingress.tlsSecret }}
+{{- range .Values.adminer.ingress.hosts }}
+    - hosts: [{{ .host | quote }}]
+      secretName: {{ .tlsSecret }}
+{{- end }}
   rules:
-    - host: {{ .Values.adminer.ingress.host }}
+{{- range .Values.adminer.ingress.hosts }}
+    - host: {{ .host }}
       http:
         paths:
           - path: /
@@ -53,4 +56,5 @@ spec:
                 name: adminer
                 port:
                   number: 8080
+{{- end }}
 {{- end }}

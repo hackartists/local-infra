@@ -1,11 +1,14 @@
+{{- range .Values.certs }}
+---
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: miner-biyard-co
+  name: {{ .dnsZone | replace "." "-" }}
 spec:
-  secretName: {{ .Values.certSecretName }}
+  secretName: {{ .secretName }}
   dnsNames:
-    - "*.{{ .Values.dnsZone }}"
+    - "*.{{ .dnsZone }}"
   issuerRef:
     name: letsencrypt-route53
     kind: ClusterIssuer
+{{- end }}

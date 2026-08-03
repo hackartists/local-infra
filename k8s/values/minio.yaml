@@ -25,7 +25,11 @@ consoleIngress:
   path: /
   hosts:
     - s3.miner.biyard.co
+    - s3.dev.biyard.co
   tls:
     - secretName: miner-biyard-co-tls
       hosts:
         - s3.miner.biyard.co
+    - secretName: dev-biyard-co-tls
+      hosts:
+        - s3.dev.biyard.co

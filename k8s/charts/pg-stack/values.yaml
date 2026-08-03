@@ -14,6 +14,9 @@ adminer:
   image: adminer:latest
   ingress:
     enabled: true
-    host: pg.miner.biyard.co
     className: nginx
-    tlsSecret: miner-biyard-co-tls
+    hosts:
+      - host: pg.miner.biyard.co
+        tlsSecret: miner-biyard-co-tls
+      - host: pg.dev.biyard.co
+        tlsSecret: dev-biyard-co-tls

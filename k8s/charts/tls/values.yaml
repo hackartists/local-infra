@@ -10,5 +10,12 @@ email: admin@biyard.co
 acmeServer: https://acme-v02.api.letsencrypt.org/directory
 awsRegion: ap-northeast-2
 credentialsSecret: route53-credentials
-dnsZone: miner.biyard.co
-certSecretName: miner-biyard-co-tls
+
+# One wildcard Certificate per zone. The Certificate resource is named after
+# the zone with dots replaced by dashes (miner.biyard.co → miner-biyard-co),
+# so keep zone spelling stable or cert-manager re-issues under a new name.
+certs:
+  - dnsZone: miner.biyard.co
+    secretName: miner-biyard-co-tls
+  - dnsZone: dev.biyard.co
+    secretName: dev-biyard-co-tls

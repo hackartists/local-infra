@@ -11,7 +11,9 @@ spec:
     solvers:
       - selector:
           dnsZones:
-            - {{ .Values.dnsZone | quote }}
+{{- range .Values.certs }}
+            - {{ .dnsZone | quote }}
+{{- end }}
         dns01:
           route53:
             region: {{ .Values.awsRegion }}

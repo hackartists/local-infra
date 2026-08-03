@@ -33,7 +33,14 @@ ingress:
       paths:
         - path: /
           pathType: Prefix
+    - host: redpanda.dev.biyard.co
+      paths:
+        - path: /
+          pathType: Prefix
   tls:
     - secretName: miner-biyard-co-tls
       hosts:
         - redpanda.miner.biyard.co
+    - secretName: dev-biyard-co-tls
+      hosts:
+        - redpanda.dev.biyard.co
