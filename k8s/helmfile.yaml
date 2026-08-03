@@ -40,3 +40,13 @@ releases:
       - values/redpanda-console.yaml
     needs:
       - infra/redpanda
+  - name: cert-manager
+    namespace: cert-manager
+    chart: jetstack/cert-manager
+    values:
+      - values/cert-manager.yaml
+  - name: tls
+    namespace: infra
+    chart: ./charts/tls
+    needs:
+      - cert-manager/cert-manager

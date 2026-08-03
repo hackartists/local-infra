@@ -1,0 +1,6 @@
+apiVersion: v2
+name: tls
+description: ClusterIssuer (Route53 DNS-01) + wildcard cert for *.miner.biyard.co
+type: application
+version: 0.1.0
+appVersion: "1"

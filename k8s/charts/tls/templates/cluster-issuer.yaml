@@ -1,0 +1,23 @@
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-route53
+spec:
+  acme:
+    email: {{ .Values.email }}
+    server: {{ .Values.acmeServer }}
+    privateKeySecretRef:
+      name: letsencrypt-route53-account
+    solvers:
+      - selector:
+          dnsZones:
+            - {{ .Values.dnsZone | quote }}
+        dns01:
+          route53:
+            region: {{ .Values.awsRegion }}
+            accessKeyIDSecretRef:
+              name: {{ .Values.credentialsSecret }}
+              key: access-key-id
+            secretAccessKeySecretRef:
+              name: {{ .Values.credentialsSecret }}
+              key: secret-access-key

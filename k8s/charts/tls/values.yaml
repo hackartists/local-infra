@@ -1,0 +1,6 @@
+email: admin@biyard.co
+acmeServer: https://acme-v02.api.letsencrypt.org/directory
+awsRegion: ap-northeast-2
+credentialsSecret: route53-credentials
+dnsZone: miner.biyard.co
+certSecretName: miner-biyard-co-tls
