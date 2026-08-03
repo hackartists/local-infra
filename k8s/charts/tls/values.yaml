@@ -1,3 +1,11 @@
+# NOTE: certbot (manual DNS-01, ./init-wildcard-cert.sh) and cert-manager both
+# issue for this zone. A leftover certbot TXT record at
+# _acme-challenge.miner.biyard.co blocks cert-manager's renewal (this exact
+# collision blocked the initial issuance — a stale TXT had to be deleted from
+# Route53 by hand). If a manual certbot run for *.miner.biyard.co ever happens
+# again, delete its _acme-challenge TXT afterwards, or cert-manager's next
+# renewal (~30 days before expiry) will wedge silently.
+
 email: admin@biyard.co
 acmeServer: https://acme-v02.api.letsencrypt.org/directory
 awsRegion: ap-northeast-2

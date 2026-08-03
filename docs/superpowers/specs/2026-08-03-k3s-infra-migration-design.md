@@ -92,7 +92,7 @@ stream {
 ```
 
 - 기존 http{} 의 모든 `listen 443 ssl` vhost는 `listen 8443 ssl`로 일괄 변경 (동작 동일, 스트림 뒤로 이동).
-- :80은 http 레벨에서 이관 4개 호스트만 `192.168.0.54:80`으로 proxy_pass(HTTPS 리다이렉트는 k3s ingress가 수행), 나머지 vhost는 기존 유지.
+- :80은 변경하지 않는다 — 이관 4개 호스트의 기존 `:80` 블록(HTTPS 301 리다이렉트)이 그대로 동작하며, 리다이렉트된 https 요청이 stream을 거쳐 k3s로 간다(구현 시 단순화; 동작 동일). 나머지 vhost도 기존 유지.
 - DNS-01을 쓰므로 ACME용 :80 webroot 경로는 이관 호스트에 불필요.
 - 실제 클라이언트 IP: 패스스루라 k3s ingress에는 Mac IP로 보임. 로컬 개발 인프라이므로 허용(필요 시 proxy_protocol은 후속 작업).
 
