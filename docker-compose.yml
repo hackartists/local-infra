@@ -180,6 +180,10 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./runners/runner1:/root/runner
       - ./runner-entrypoint.sh:/root/runner-entrypoint.sh
+      # Home k3s access for CI deploy jobs (essence k3s-preview / pr-cleanup):
+      # cluster-admin kubeconfig + the Lima node SSH key, read-only.
+      - /Users/hackartist/.kube/config:/root/.kube/config:ro
+      - /Users/hackartist/.lima/_config/user:/root/.ssh/k3s-node:ro
     environment:
       RUNNER_NAME: runner1
       RUNNER_TOKEN: ACAM5BZNVBHWU5EVBQ7A6XDKK6HQ4
@@ -197,6 +201,10 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./runners/runner2:/root/runner
       - ./runner-entrypoint.sh:/root/runner-entrypoint.sh
+      # Home k3s access for CI deploy jobs (essence k3s-preview / pr-cleanup):
+      # cluster-admin kubeconfig + the Lima node SSH key, read-only.
+      - /Users/hackartist/.kube/config:/root/.kube/config:ro
+      - /Users/hackartist/.lima/_config/user:/root/.ssh/k3s-node:ro
     environment:
       RUNNER_NAME: runner2
       RUNNER_TOKEN: ACAM5B5CLGW2K3XGWLG57DLKK6HVO
@@ -214,6 +222,10 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./runners/runner3:/root/runner
       - ./runner-entrypoint.sh:/root/runner-entrypoint.sh
+      # Home k3s access for CI deploy jobs (essence k3s-preview / pr-cleanup):
+      # cluster-admin kubeconfig + the Lima node SSH key, read-only.
+      - /Users/hackartist/.kube/config:/root/.kube/config:ro
+      - /Users/hackartist/.lima/_config/user:/root/.ssh/k3s-node:ro
     environment:
       RUNNER_NAME: runner3
       RUNNER_TOKEN: ACAM5B2RJCG3OPBG22FZWCLKK6HZU
@@ -231,6 +243,10 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./runners/runner4:/root/runner
       - ./runner-entrypoint.sh:/root/runner-entrypoint.sh
+      # Home k3s access for CI deploy jobs (essence k3s-preview / pr-cleanup):
+      # cluster-admin kubeconfig + the Lima node SSH key, read-only.
+      - /Users/hackartist/.kube/config:/root/.kube/config:ro
+      - /Users/hackartist/.lima/_config/user:/root/.ssh/k3s-node:ro
     environment:
       RUNNER_NAME: runner4
       RUNNER_TOKEN: ACAM5B5S5ORJ5FHZWEIFXPDKK6H4G
@@ -248,6 +264,10 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./runners/runner5:/root/runner
       - ./runner-entrypoint.sh:/root/runner-entrypoint.sh
+      # Home k3s access for CI deploy jobs (essence k3s-preview / pr-cleanup):
+      # cluster-admin kubeconfig + the Lima node SSH key, read-only.
+      - /Users/hackartist/.kube/config:/root/.kube/config:ro
+      - /Users/hackartist/.lima/_config/user:/root/.ssh/k3s-node:ro
     environment:
       RUNNER_NAME: runner5
       RUNNER_TOKEN: ACAM5B2S6NBQCNG5LODGW33KK6H6A
@@ -265,6 +285,10 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./runners/runner6:/root/runner
       - ./runner-entrypoint.sh:/root/runner-entrypoint.sh
+      # Home k3s access for CI deploy jobs (essence k3s-preview / pr-cleanup):
+      # cluster-admin kubeconfig + the Lima node SSH key, read-only.
+      - /Users/hackartist/.kube/config:/root/.kube/config:ro
+      - /Users/hackartist/.lima/_config/user:/root/.ssh/k3s-node:ro
     environment:
       RUNNER_NAME: runner6
       RUNNER_TOKEN: ACAM5B62URSNNOO4OV4SPTDKK6H7W
@@ -281,6 +305,10 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./runners/runner7:/root/runner
       - ./runner-entrypoint.sh:/root/runner-entrypoint.sh
+      # Home k3s access for CI deploy jobs (essence k3s-preview / pr-cleanup):
+      # cluster-admin kubeconfig + the Lima node SSH key, read-only.
+      - /Users/hackartist/.kube/config:/root/.kube/config:ro
+      - /Users/hackartist/.lima/_config/user:/root/.ssh/k3s-node:ro
     container_name: runner7
     environment:
       RUNNER_NAME: runner7
@@ -298,6 +326,10 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./runners/runner8:/root/runner
       - ./runner-entrypoint.sh:/root/runner-entrypoint.sh
+      # Home k3s access for CI deploy jobs (essence k3s-preview / pr-cleanup):
+      # cluster-admin kubeconfig + the Lima node SSH key, read-only.
+      - /Users/hackartist/.kube/config:/root/.kube/config:ro
+      - /Users/hackartist/.lima/_config/user:/root/.ssh/k3s-node:ro
     container_name: runner8
     environment:
       RUNNER_NAME: runner8
@@ -315,6 +347,10 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./runners/runner9:/root/runner
       - ./runner-entrypoint.sh:/root/runner-entrypoint.sh
+      # Home k3s access for CI deploy jobs (essence k3s-preview / pr-cleanup):
+      # cluster-admin kubeconfig + the Lima node SSH key, read-only.
+      - /Users/hackartist/.kube/config:/root/.kube/config:ro
+      - /Users/hackartist/.lima/_config/user:/root/.ssh/k3s-node:ro
     container_name: runner9
     environment:
       RUNNER_NAME: runner9
