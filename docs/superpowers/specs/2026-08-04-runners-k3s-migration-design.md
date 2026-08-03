@@ -84,7 +84,7 @@ Dockerfile.runner-k8s        # 새 러너 이미지 (레포 루트, 기존 Docke
 - `PVC pr-webroot`(local-path RWO 50Gi) — 러너 파드들과 프리뷰 nginx가 **모두 lima 노드 고정이므로 RWO 공유 가능**(RWO는 노드 단위 제약).
 - `Deployment pr-nginx`(nginx:alpine) — PVC를 `/usr/share/nginx/html`에 ro 마운트, 기존 `asset-pr.conf`의 정적 서빙 규칙(경로→디렉토리 매핑, SPA fallback 등)을 ConfigMap으로 이식.
 - Ingress: `*.pr.biyard.co` (와일드카드 host) → pr-nginx. TLS는 tls 차트 `certs:`에 `{dnsZone: pr.biyard.co, secretName: pr-biyard-co-tls}` 추가로 와일드카드 발급(기존 certbot의 `*.pr.biyard.co` 수동 인증서 대체 — certbot 잔재 TXT 충돌 주의사항은 miner와 동일).
-- Mac nginx: stream SNI 맵에 `.pr.biyard.co → k3s_ingress` 추가, `conf.d/dev.conf` 패턴으로 :80 리다이렉트 추가. `asset-pr.conf`의 정적 서빙 vhost 제거(동적 per-PR 컨테이너 프록시 vhost는 compose 프리뷰가 소멸할 때까지 유지).
+- Mac nginx: stream SNI 맵에 `.pr.biyard.co → k3s_ingress` 추가(:80은 asset-pr.conf의 기존 리다이렉트 블록 재사용). **주의: SNI는 호스트 패턴 열거가 불가능하므로 이 전환 시점부터 동적 per-PR compose 프리뷰(`<svc>-<pr>.pr.biyard.co` → biyard-dev 컨테이너)도 k3s로 라우팅되어 접근이 끊긴다 — 빅뱅 결정(러너 docker 제거로 신규 compose 프리뷰 생성도 불가)과 정합하며 감수한다.** asset-pr.conf의 vhost 블록들은 롤백 대비로 두고 후속 정리한다.
 - 기존 `nginx/webroot` 콘텐츠는 1회 복사(러너 파드 경유 `kubectl cp` 또는 임시 파드).
 - DNS: `*.pr.biyard.co`가 현재 어디를 가리키는지 구현 시 확인 — Mac(121.131.101.30)으로 오면 SNI 추가만으로 충분.
 
