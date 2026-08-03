@@ -19,6 +19,13 @@ resources:
 environment:
   MINIO_BROWSER_REDIRECT_URL: https://s3.miner.biyard.co
 
-# Ingress는 Task 7에서 활성화
 consoleIngress:
-  enabled: false
+  enabled: true
+  ingressClassName: nginx
+  path: /
+  hosts:
+    - s3.miner.biyard.co
+  tls:
+    - secretName: miner-biyard-co-tls
+      hosts:
+        - s3.miner.biyard.co

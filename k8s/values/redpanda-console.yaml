@@ -19,6 +19,21 @@ config:
       urls:
         - http://redpanda-0.redpanda.infra.svc.cluster.local:9644
 
-# Ingress는 Task 7에서 활성화
+# NOTE (Task 7): the brief's Step 3 targeted `console.ingress` inside
+# k8s/values/redpanda.yaml (redpanda/redpanda chart), but that chart's
+# in-chart console.* is disabled (see redpanda.yaml comment) — Console runs
+# as the separate `redpanda-console` release using chart redpanda/console,
+# whose ingress keys live at the top level of this file. Key structure
+# (enabled/className/hosts/tls) matches `helm show values redpanda/console`.
 ingress:
-  enabled: false
+  enabled: true
+  className: nginx
+  hosts:
+    - host: redpanda.miner.biyard.co
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: miner-biyard-co-tls
+      hosts:
+        - redpanda.miner.biyard.co

@@ -13,7 +13,7 @@ postgres:
 adminer:
   image: adminer:latest
   ingress:
-    enabled: false
+    enabled: true
     host: pg.miner.biyard.co
     className: nginx
     tlsSecret: miner-biyard-co-tls

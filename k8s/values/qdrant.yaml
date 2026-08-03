@@ -7,6 +7,24 @@ persistence:
   size: 20Gi
   storageClassName: local-path
 
-# Ingress는 Task 7에서 활성화
+# NOTE: unlike the task brief's draft, this chart's ingress.hosts[].paths[]
+# entries require an explicit `servicePort` (templates/ingress.yaml reads
+# `.servicePort` with no default — omitting it renders `port: number:`
+# empty and produces an invalid Ingress). 6333 is the qdrant REST/dashboard
+# port (values.yaml service.ports[0]).
 ingress:
-  enabled: false
+  enabled: true
+  ingressClassName: nginx
+  annotations:
+    # 기존 nginx의 "/ → /dashboard" 리다이렉트 유지
+    nginx.ingress.kubernetes.io/app-root: /dashboard
+  hosts:
+    - host: qdrant.miner.biyard.co
+      paths:
+        - path: /
+          pathType: Prefix
+          servicePort: 6333
+  tls:
+    - secretName: miner-biyard-co-tls
+      hosts:
+        - qdrant.miner.biyard.co
