@@ -1,0 +1,27 @@
+# k8s runner image: Dockerfile.runner minus the docker CLI/daemon deps,
+# plus kubectl/helm/buildctl for the buildkit+registry build contract.
+FROM public.ecr.aws/sam/build-provided.al2023:latest
+
+RUN cd /root && \
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs > install.sh && \
+    sh install.sh -y && \
+    dnf install dotnet-sdk-10.0 openssl-devel gcc gcc-c++ make cmake git diffutils patch binutils libcurl-devel pkgconf-pkg-config tar gzip which findutils jq -y
+
+RUN dnf install openssl -y && \
+    curl -L "https://dl.k8s.io/release/$(curl -Ls https://dl.k8s.io/release/stable.txt)/bin/linux/arm64/kubectl" \
+      -o /usr/local/bin/kubectl && chmod +x /usr/local/bin/kubectl && \
+    curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash && \
+    BK=$(curl -s https://api.github.com/repos/moby/buildkit/releases/latest | jq -r .tag_name) && \
+    curl -L "https://github.com/moby/buildkit/releases/download/${BK}/buildkit-${BK}.linux-arm64.tar.gz" \
+      | tar -xz -C /usr/local && \
+    buildctl --version
+
+COPY runner-entrypoint-k8s.sh /usr/local/bin/runner-entrypoint-k8s.sh
+RUN chmod +x /usr/local/bin/runner-entrypoint-k8s.sh
+
+ENV PATH="/root/.cargo/bin:${PATH}"
+ENV RUNNER_ALLOW_RUNASROOT=true
+ENV BUILDKIT_HOST=tcp://buildkitd.infra.svc.cluster.local:1234
+WORKDIR /root/runner
+
+CMD ["/usr/local/bin/runner-entrypoint-k8s.sh"]
