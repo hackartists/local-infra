@@ -1,0 +1,12 @@
+# Local dev infra on k3s. Deploy everything with: helmfile -f k8s/helmfile.yaml apply
+repositories:
+  - name: minio
+    url: https://charts.min.io/
+  - name: qdrant
+    url: https://qdrant.github.io/qdrant-helm
+  - name: redpanda
+    url: https://charts.redpanda.com
+  - name: jetstack
+    url: https://charts.jetstack.io
+
+releases: []
