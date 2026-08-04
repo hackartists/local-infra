@@ -27,6 +27,9 @@ releases:
     chart: ./charts/minio-init
     needs:
       - infra/minio
+  - name: dynamodb-local
+    namespace: infra
+    chart: ./charts/dynamodb-local
   - name: qdrant
     namespace: infra
     chart: qdrant/qdrant

@@ -1,0 +1,23 @@
+# LocalStack이 아니라 amazon/dynamodb-local을 쓴다: Community LocalStack은
+# PERSISTENCE(재시작 후 상태 복원)가 Pro 기능이라 PVC를 붙여도 테이블 생존을
+# 보장하지 못한다. 여기서 필요한 건 DynamoDB API 하나뿐이고(S3는 minio 담당)
+# dynamodb-local은 -dbPath로 확실히 영속된다.
+image: amazon/dynamodb-local:latest
+
+# local-path PV는 노드 로컬이라 파드가 노드를 옮기면 데이터를 따라가지 못한다.
+nodeSelector:
+  kubernetes.io/hostname: lima-k3s-server
+
+# 클라이언트: endpoint만 http://dynamodb-local.infra.svc.cluster.local:8000 으로
+# 덮으면 되고 region은 무엇이든 상관없다(-sharedDb). 크리덴셜도 값은 무관하지만
+# access key는 영숫자여야 한다 — 하이픈 등이 섞이면 UnrecognizedClientException.
+port: 8000
+storage: 5Gi
+storageClass: local-path
+
+# 브라우저용 테이블/아이템 뷰어. dynamodb-local 자체엔 UI가 없다.
+admin:
+  enabled: true
+  image: aaronshaf/dynamodb-admin:latest
+  port: 8001
+  region: ap-northeast-2

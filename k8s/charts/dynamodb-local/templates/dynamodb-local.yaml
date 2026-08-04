@@ -1,0 +1,82 @@
+# Holds shared-local-instance.db — the whole datastore lives in this one file.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: dynamodb-local-data
+spec:
+  accessModes: ["ReadWriteOnce"]
+  storageClassName: {{ .Values.storageClass }}
+  resources:
+    requests:
+      storage: {{ .Values.storage }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dynamodb-local
+spec:
+  replicas: 1
+  # 파일 DB on RWO volume: 두 인스턴스가 동시에 뜨면 안 된다
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: dynamodb-local
+  template:
+    metadata:
+      labels:
+        app: dynamodb-local
+    spec:
+      nodeSelector:
+{{ toYaml .Values.nodeSelector | indent 8 }}
+      # local-path가 root 소유 디렉터리를 파는데 이미지는 uid 1000(dynamodblocal)으로 돈다
+      initContainers:
+        - name: chown-data
+          image: busybox:1.36
+          command: ["chown", "-R", "1000:1000", "/home/dynamodblocal/data"]
+          volumeMounts:
+            - name: data
+              mountPath: /home/dynamodblocal/data
+      containers:
+        - name: dynamodb-local
+          image: {{ .Values.image }}
+          # ENTRYPOINT가 이미 `java -Djava.library.path=./DynamoDBLocal_lib`이므로 args만 넘긴다.
+          # -sharedDb: 이게 없으면 access-key/region 조합마다 테이블 파일이 갈려서,
+          # 서비스마다 더미 크리덴셜이 다르면 서로의 테이블이 보이지 않는다.
+          args:
+            - -jar
+            - DynamoDBLocal.jar
+            - -sharedDb
+            - -dbPath
+            - /home/dynamodblocal/data
+            - -port
+            - {{ .Values.port | quote }}
+          ports:
+            - containerPort: {{ .Values.port }}
+              name: http
+          # 헬스 엔드포인트가 없다 — GET /는 400을 돌려주므로 TCP로만 확인.
+          readinessProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 5
+          volumeMounts:
+            - name: data
+              mountPath: /home/dynamodblocal/data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: dynamodb-local-data
+---
+# ClusterIP only. VPN 클라이언트는 openvpn이 푸시하는 서비스 CIDR 라우트 +
+# infra.svc.cluster.local 서치도메인으로 그대로 붙는다 (Mac 호스트 포함).
+# 무인증 AWS API라 ingress/NodePort는 두지 않는다.
+apiVersion: v1
+kind: Service
+metadata:
+  name: dynamodb-local
+spec:
+  selector:
+    app: dynamodb-local
+  ports:
+    - port: {{ .Values.port }}
+      targetPort: http
