@@ -59,6 +59,9 @@ releases:
   - name: open-webui
     namespace: infra
     chart: ./charts/open-webui
+  - name: postal
+    namespace: infra
+    chart: ./charts/postal
   - name: registry
     namespace: infra
     chart: ./charts/registry
