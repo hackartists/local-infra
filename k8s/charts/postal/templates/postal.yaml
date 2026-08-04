@@ -14,6 +14,11 @@ data:
       web_protocol: https
       smtp_hostname: {{ .Values.smtpHostname }}
       use_ip_pools: false
+      # SSRF guard allowlist for HTTP endpoints (cluster-local webhook)
+      allowed_request_destinations:
+{{- range .Values.allowedRequestDestinations }}
+        - {{ . | quote }}
+{{- end }}
     web_server:
       default_port: {{ .Values.webPort }}
       default_bind_address: 0.0.0.0

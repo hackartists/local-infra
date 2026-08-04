@@ -40,3 +40,8 @@ ingress:
 #     --from-literal=admin-password="$(openssl rand -base64 12 | tr -d '=+/')" \
 #     --from-file=signing.key=<(openssl genrsa 2048)
 secretName: postal-secrets
+
+# Postal's SSRF guard blocks webhook deliveries to private IPs; cluster-local
+# destinations (the mail-bridge webhook) must be allowlisted explicitly.
+allowedRequestDestinations:
+  - mail-bridge.infra.svc
