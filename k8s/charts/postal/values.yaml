@@ -7,7 +7,7 @@
 #   docker --context lima-docker save postal:<tag>-arm64 | \
 #     limactl shell k3s-server -- sudo k3s ctr images import -
 # Bump the tag on upgrades so the rollout picks it up.
-image: postal:3.3.4-arm64
+image: postal:3.3.7-arm64
 mariadbImage: mariadb:11.4
 
 # hostPort 25 + locally-imported image: pin to the lima node (like openvpn).
