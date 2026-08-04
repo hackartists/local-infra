@@ -1,0 +1,7 @@
+# Multi-arch official image (arm64 OK).
+image: docker.redpanda.com/redpandadata/connect:4
+port: 4195
+# Cluster redpanda: TLS off, plaintext kafka listener (see values/redpanda.yaml);
+# topic is auto-created (auto_create_topics_enabled: true).
+brokers: redpanda-0.redpanda.infra.svc.cluster.local:9093
+topic: postal.inbound

@@ -62,6 +62,9 @@ releases:
   - name: postal
     namespace: infra
     chart: ./charts/postal
+  - name: mail-bridge
+    namespace: infra
+    chart: ./charts/mail-bridge
   - name: registry
     namespace: infra
     chart: ./charts/registry

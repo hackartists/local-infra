@@ -1,0 +1,5 @@
+apiVersion: v2
+name: mail-bridge
+description: Redpanda Connect bridge — Postal inbound webhook to Kafka topic
+type: application
+version: 0.1.0
