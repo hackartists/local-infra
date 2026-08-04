@@ -28,7 +28,7 @@ storageClass: local-path
 mariadbStorage: 8Gi
 
 ingress:
-  enabled: true
+  enabled: false
   className: nginx
   tlsSecret: dev-biyard-co-tls
 

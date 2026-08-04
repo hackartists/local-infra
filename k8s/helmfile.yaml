@@ -56,6 +56,8 @@ releases:
   - name: host-proxies
     namespace: infra
     chart: ./charts/host-proxies
+    # 2026-08-04: Mac 호스트 dev 서버 외부 노출 중단 — 필요해지면 true로.
+    installed: false
   - name: open-webui
     namespace: infra
     chart: ./charts/open-webui

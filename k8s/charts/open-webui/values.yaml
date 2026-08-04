@@ -10,7 +10,7 @@ storageClass: local-path
 ollamaBaseUrl: http://ollama:11434
 
 ingress:
-  enabled: true
+  enabled: false
   className: nginx
   host: ollama.miner.biyard.co
   tlsSecret: miner-biyard-co-tls

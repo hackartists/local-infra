@@ -8,7 +8,7 @@ storage: 100Gi
 storageClass: local-path
 
 ingress:
-  enabled: true
+  enabled: false
   className: nginx
   host: registry.dev.biyard.co
   tlsSecret: dev-biyard-co-tls

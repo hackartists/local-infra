@@ -13,7 +13,7 @@ persistence:
 # empty and produces an invalid Ingress). 6333 is the qdrant REST/dashboard
 # port (values.yaml service.ports[0]).
 ingress:
-  enabled: true
+  enabled: false
   ingressClassName: nginx
   annotations:
     # 기존 nginx의 "/ → /dashboard" 리다이렉트 유지
