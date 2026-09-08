@@ -1,0 +1,23 @@
+# Cluster-wide admin for the `ryan` developer ServiceAccount.
+#
+# The dev-<name> namespaces (dev-ryan / dev-christian / dev-victor) and their
+# ServiceAccounts were created imperatively and are NOT otherwise tracked here;
+# this file only covers ryan's cluster-wide grant.
+#
+# Supersedes the `dev-ryan-view` ClusterRoleBinding (ClusterRole/view), which is
+# now redundant — cluster-admin subsumes it.
+#
+# NOTE: `roleRef` is immutable. To change the granted role, delete this binding
+# and re-apply rather than editing it in place.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: dev-ryan-cluster-admin
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: ryan
+    namespace: dev-ryan
