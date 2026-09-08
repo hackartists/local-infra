@@ -9,6 +9,9 @@ postgres:
   storage: 20Gi
   storageClass: local-path
   nodePort: 30432
+  # postgres 기본값 100. PR 프리뷰 1개당 마이크로서비스 풀이 10~30개를 잡아
+  # 2026-08-04 기준 99/100까지 찼음. 근본 대책은 앱 풀 축소/PgBouncer.
+  maxConnections: 300
 
 adminer:
   image: adminer:latest
