@@ -13,3 +13,7 @@
 # OpenVPN PKI/keys — never commit
 /openvpn/
 /infra/
+*.ovpn
+
+# Cluster admin credentials — never commit
+*.kubeconfig
