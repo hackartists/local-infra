@@ -6,6 +6,10 @@ spec:
   serviceName: runner
   replicas: {{ .Values.replicas }}
   podManagementPolicy: Parallel
+  # CI 러너는 롤링 재시작이 진행 중인 잡을 죽인다 —
+  # 스펙 변경은 유휴 파드를 수동 삭제할 때만 반영.
+  updateStrategy:
+    type: OnDelete
   selector:
     matchLabels:
       app: runner

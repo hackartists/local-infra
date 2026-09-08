@@ -9,5 +9,8 @@ storageClass: local-path
 
 resources:
   requests:
-    cpu: "1"
-    memory: 2Gi
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: "2"
+    memory: 8Gi
