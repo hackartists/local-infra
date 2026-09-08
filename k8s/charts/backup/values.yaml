@@ -1,0 +1,57 @@
+# 오프사이트 백업. 클러스터 데이터는 전부 lima-k3s-server 노드의 local-path
+# 디스크 한 장에만 있으므로, 노드가 죽으면 S3 사본이 유일한 복구 수단이다.
+#
+# 자격증명은 레포에 없음 — infra ns에 수동 생성 (k8s/README-backup.md 참조):
+#   kubectl -n infra create secret generic backup-s3-credentials \
+#     --from-literal=access-key-id='...' --from-literal=secret-access-key='...'
+s3:
+  region: ap-northeast-2
+  # mc용 S3 엔드포인트(리전 지정). aws-cli는 region 환경변수만으로 충분.
+  endpoint: https://s3.ap-northeast-2.amazonaws.com
+  credentialsSecret: backup-s3-credentials
+  # 백업 IAM 사용자에게 Delete 권한을 주지 않는다. 보존 만료는 S3
+  # 라이프사이클이 처리하므로, 클러스터 자격증명이 털려도 과거 백업은
+  # 지울 수 없다(랜섬웨어 대비). 정책 예시는 README-backup.md.
+
+postgres:
+  enabled: true
+  image: postgres:16-alpine
+  awsCliImage: amazon/aws-cli:latest
+  # 매일 03:10 KST(=18:10 UTC). CronJob은 UTC로 해석된다.
+  schedule: "10 18 * * *"
+  host: postgres
+  port: 5432
+  user: asset
+  # pg-stack/values.yaml의 postgres.password와 같은 값이어야 한다(그쪽이 원본).
+  password: asset
+  # 전용 버킷. 보존 30일은 S3 라이프사이클 규칙으로 강제한다.
+  bucket: biyard-backup-postgres
+  prefix: postgres
+  # pg_dumpall — 개별 DB뿐 아니라 롤/글로벌까지 통째로 받는다.
+  # 다만 PR 프리뷰 DB(asset_pr_*)는 뜨고 지는 일회용이라 제외한다. 2026-08-30
+  # 기준 전체 366MB 중 200MB가 프리뷰였고, 빼고 나면 gzip 4MB / 2초면 끝난다.
+  # 패턴은 psql의 \d 패턴 문법(*, ?)을 따른다.
+  excludeDatabases:
+    - "asset_pr_*"
+  dumpDiskSize: 20Gi
+
+minio:
+  enabled: true
+  image: minio/mc:latest
+  # 6시간마다. mirror는 변경분만 올리므로 반복 비용이 낮다.
+  schedule: "20 */6 * * *"
+  endpoint: http://minio:9000
+  accessKey: minioadmin
+  secretKey: minioadmin
+  # S3 버킷명은 전역 유일해야 해서 MinIO 버킷명 앞에 접두사를 붙인다.
+  # assets-local-uploads -> biyard-assets-local-uploads
+  bucketPrefix: biyard-
+  # 미러에서 제외할 MinIO 버킷. doc-converter-temp는 ILM로 1일 뒤 사라지는
+  # 임시 버킷이라 백업 의미가 없다.
+  excludeBuckets:
+    - assets-local-doc-converter-temp
+
+# Mac이 잠들어 스케줄을 놓쳐도 깨어난 뒤 1시간 안이면 따라잡는다.
+startingDeadlineSeconds: 3600
+successfulJobsHistoryLimit: 3
+failedJobsHistoryLimit: 3

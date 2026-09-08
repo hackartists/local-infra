@@ -1,0 +1,5 @@
+apiVersion: v2
+name: backup
+description: Offsite backups to AWS S3 — Postgres logical dumps + MinIO bucket mirror
+type: application
+version: 0.1.0

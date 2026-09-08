@@ -27,6 +27,12 @@ releases:
     chart: ./charts/minio-init
     needs:
       - infra/minio
+  - name: backup
+    namespace: infra
+    chart: ./charts/backup
+    needs:
+      - infra/minio
+      - infra/pg-stack
   - name: dynamodb-local
     namespace: infra
     chart: ./charts/dynamodb-local
