@@ -1,7 +1,0 @@
-# ollama runs natively on the Mac host, not in the cluster. This selectorless
-# Service owns the `ollama` name in the infra namespace so anything in-cluster
-# (and VPN clients via the pushed infra.svc search domain) reaches it at
-# http://ollama:11434. To repoint it (host IP change, move to a GPU box, swap
-# in an in-cluster ollama), change only the target below.
-hostIP: 192.168.0.42
-port: 11434

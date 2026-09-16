@@ -1,6 +1,0 @@
-apiVersion: v2
-name: buildkitd
-description: Shared BuildKit daemon for CI image builds (runners + external via NodePort)
-type: application
-version: 0.1.0
-appVersion: "0.17"

@@ -1,5 +1,0 @@
-apiVersion: v2
-name: postal
-description: Postal mail server (web/smtp/worker) + MariaDB
-type: application
-version: 0.1.0

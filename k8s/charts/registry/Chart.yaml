@@ -1,6 +1,0 @@
-apiVersion: v2
-name: registry
-description: Local container image registry shared by docker build hosts and k3s
-type: application
-version: 0.1.0
-appVersion: "3"

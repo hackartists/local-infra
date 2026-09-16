@@ -1,6 +1,0 @@
-apiVersion: v2
-name: openvpn
-description: OpenVPN server exposing cluster services to VPN clients via CoreDNS (mirrors compose openvpn)
-type: application
-version: 0.1.0
-appVersion: "2.6"
