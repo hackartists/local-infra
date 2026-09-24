@@ -4,8 +4,9 @@
 set -e
 
 ORDINAL=${HOSTNAME##*-}
-# RUNNER_NAME_PREFIX/RUNNER_URL let a second StatefulSet (e.g. a repo-scoped
-# pool on another node) register without colliding with the org runner1..N.
+# RUNNER_NAME_PREFIX/RUNNER_URL/RUNNER_GROUP let a second StatefulSet (e.g. an
+# amd64 pool on another node) register without colliding with the org runner1..N,
+# straight into a restricted runner group so no unvetted job lands on it first.
 export RUNNER_NAME="${RUNNER_NAME_PREFIX:-runner}$((ORDINAL + 1))"
 
 # Compat: some CI jobs read ~/.kube/config; synthesize one from the in-cluster SA.
@@ -54,7 +55,8 @@ fi
 if [ ! -f .runner ]; then
   if [ -n "$RUNNER_TOKEN" ]; then
     RUNNER_ALLOW_RUNASROOT=true ./config.sh --url "${RUNNER_URL:-https://github.com/biyard}" \
-      --token "$RUNNER_TOKEN" --labels "${LABELS:-linux,arm64,docker}" --name "$RUNNER_NAME" --unattended
+      --token "$RUNNER_TOKEN" --labels "${LABELS:-linux,arm64,docker}" --name "$RUNNER_NAME" --unattended \
+      ${RUNNER_GROUP:+--runnergroup "$RUNNER_GROUP"}
   else
     echo "FATAL: no migrated registration state (.runner) and no RUNNER_TOKEN — refusing to start" >&2
     exit 1
