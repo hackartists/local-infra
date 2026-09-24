@@ -2,17 +2,19 @@
 # plus kubectl/helm/buildctl for the buildkit+registry build contract.
 FROM public.ecr.aws/sam/build-provided.al2023:latest
 
+ARG TARGETARCH
+
 RUN cd /root && \
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs > install.sh && \
     sh install.sh -y && \
     dnf install dotnet-sdk-10.0 openssl-devel gcc gcc-c++ make cmake git diffutils patch binutils libcurl-devel pkgconf-pkg-config tar gzip which findutils jq -y
 
 RUN dnf install openssl -y && \
-    curl -L "https://dl.k8s.io/release/$(curl -Ls https://dl.k8s.io/release/stable.txt)/bin/linux/arm64/kubectl" \
+    curl -L "https://dl.k8s.io/release/$(curl -Ls https://dl.k8s.io/release/stable.txt)/bin/linux/${TARGETARCH}/kubectl" \
       -o /usr/local/bin/kubectl && chmod +x /usr/local/bin/kubectl && \
     curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash && \
     BK=$(curl -s https://api.github.com/repos/moby/buildkit/releases/latest | jq -r .tag_name) && \
-    curl -L "https://github.com/moby/buildkit/releases/download/${BK}/buildkit-${BK}.linux-arm64.tar.gz" \
+    curl -L "https://github.com/moby/buildkit/releases/download/${BK}/buildkit-${BK}.linux-${TARGETARCH}.tar.gz" \
       | tar -xz -C /usr/local && \
     buildctl --version
 
