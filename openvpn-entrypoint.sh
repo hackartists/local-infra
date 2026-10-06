@@ -96,6 +96,7 @@ cert $PKI_DIR/issued/server.crt
 key $PKI_DIR/private/server.key
 dh none
 tls-crypt $OVPN_DIR/ta.key
+$([ -f "$OVPN_DIR/crl.pem" ] && echo "crl-verify $OVPN_DIR/crl.pem")
 
 data-ciphers AES-256-GCM:CHACHA20-POLY1305
 auth SHA256
