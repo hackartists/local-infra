@@ -1,0 +1,239 @@
+# RBAC for the `miner` ServiceAccount (infra/miner).
+#
+# Same scope as dev-ryan.yaml:
+#   - dataroom, infra: read-only via ClusterRole/view (RoleBinding miner-view).
+#     view excludes secrets, pods/exec, pods/portforward and all writes.
+#   - User namespaces listed below: ClusterRole/admin (RoleBinding miner-admin).
+#   - Cluster scope: get/list/watch on namespaces and nodes only
+#     (ClusterRole miner-cluster-read), so `kubectl get ns` works.
+#
+# Deliberately NOT granted: kube-system, kube-public, kube-node-lease,
+# cert-manager, cnpg-system (SAs there hold cluster-wide secret read, so admin
+# would be a privilege-escalation path).
+#
+# New namespaces (e.g. ephemeral dataroom-pr-* / ratel-pr-* PR namespaces) are
+# NOT covered automatically; add a RoleBinding here if access is needed.
+#
+# Replaces the former `miner-cluster-admin` ClusterRoleBinding. The ServiceAccount
+# and its token secret (infra/miner-token) are created imperatively and are not
+# tracked here.
+#
+# NOTE: `roleRef` is immutable. To change a granted role, delete the binding
+# and re-apply rather than editing it in place.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: miner-cluster-read
+rules:
+  - apiGroups: [""]
+    resources: ["namespaces", "nodes"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: miner-cluster-read
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: miner-cluster-read
+subjects:
+  - kind: ServiceAccount
+    name: miner
+    namespace: infra
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: miner-view
+  namespace: dataroom
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: view
+subjects:
+  - kind: ServiceAccount
+    name: miner
+    namespace: infra
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: miner-view
+  namespace: infra
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: view
+subjects:
+  - kind: ServiceAccount
+    name: miner
+    namespace: infra
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: miner-admin
+  namespace: career
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: admin
+subjects:
+  - kind: ServiceAccount
+    name: miner
+    namespace: infra
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: miner-admin
+  namespace: data
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: admin
+subjects:
+  - kind: ServiceAccount
+    name: miner
+    namespace: infra
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: miner-admin
+  namespace: dataroom-dev
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: admin
+subjects:
+  - kind: ServiceAccount
+    name: miner
+    namespace: infra
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: miner-admin
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: admin
+subjects:
+  - kind: ServiceAccount
+    name: miner
+    namespace: infra
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: miner-admin
+  namespace: dev-christian
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: admin
+subjects:
+  - kind: ServiceAccount
+    name: miner
+    namespace: infra
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: miner-admin
+  namespace: dev-ryan
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: admin
+subjects:
+  - kind: ServiceAccount
+    name: miner
+    namespace: infra
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: miner-admin
+  namespace: essence
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: admin
+subjects:
+  - kind: ServiceAccount
+    name: miner
+    namespace: infra
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: miner-admin
+  namespace: finance
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: admin
+subjects:
+  - kind: ServiceAccount
+    name: miner
+    namespace: infra
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: miner-admin
+  namespace: ratel-dev
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: admin
+subjects:
+  - kind: ServiceAccount
+    name: miner
+    namespace: infra
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: miner-admin
+  namespace: ratel-perf
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: admin
+subjects:
+  - kind: ServiceAccount
+    name: miner
+    namespace: infra
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: miner-admin
+  namespace: ratel-prod
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: admin
+subjects:
+  - kind: ServiceAccount
+    name: miner
+    namespace: infra
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: miner-admin
+  namespace: workflows
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: admin
+subjects:
+  - kind: ServiceAccount
+    name: miner
+    namespace: infra
