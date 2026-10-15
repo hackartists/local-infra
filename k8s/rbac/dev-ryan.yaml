@@ -1,22 +1,238 @@
-# Cluster-wide admin for the `ryan` developer ServiceAccount.
+# RBAC for the `ryan` developer ServiceAccount (dev-ryan/ryan).
 #
-# The dev-<name> namespaces (dev-ryan / dev-christian / dev-victor) and their
-# ServiceAccounts were created imperatively and are NOT otherwise tracked here;
-# this file only covers ryan's cluster-wide grant.
+# Scope:
+#   - dataroom, infra: read-only via ClusterRole/view (RoleBinding dev-ryan-view).
+#     view excludes secrets, pods/exec, pods/portforward and all writes.
+#   - User namespaces listed below: ClusterRole/admin (RoleBinding dev-ryan-admin).
+#   - Cluster scope: get/list/watch on namespaces and nodes only
+#     (ClusterRole dev-ryan-cluster-read), so `kubectl get ns` works.
 #
-# Supersedes the `dev-ryan-view` ClusterRoleBinding (ClusterRole/view), which is
-# now redundant — cluster-admin subsumes it.
+# Deliberately NOT granted: kube-system, kube-public, kube-node-lease,
+# cert-manager, cnpg-system (SAs there hold cluster-wide secret read, so admin
+# would be a privilege-escalation path).
 #
-# NOTE: `roleRef` is immutable. To change the granted role, delete this binding
+# New namespaces (e.g. ephemeral dataroom-pr-* / ratel-pr-* PR namespaces) are
+# NOT covered automatically; add a RoleBinding here if access is needed.
+#
+# Replaces the former `dev-ryan-cluster-admin` and `dev-ryan-view`
+# ClusterRoleBindings. The dev-<name> namespaces and their ServiceAccounts are
+# created imperatively and are not tracked here.
+#
+# NOTE: `roleRef` is immutable. To change a granted role, delete the binding
 # and re-apply rather than editing it in place.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: dev-ryan-cluster-read
+rules:
+  - apiGroups: [""]
+    resources: ["namespaces", "nodes"]
+    verbs: ["get", "list", "watch"]
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: dev-ryan-cluster-admin
+  name: dev-ryan-cluster-read
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: cluster-admin
+  name: dev-ryan-cluster-read
+subjects:
+  - kind: ServiceAccount
+    name: ryan
+    namespace: dev-ryan
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: dev-ryan-view
+  namespace: dataroom
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: view
+subjects:
+  - kind: ServiceAccount
+    name: ryan
+    namespace: dev-ryan
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: dev-ryan-view
+  namespace: infra
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: view
+subjects:
+  - kind: ServiceAccount
+    name: ryan
+    namespace: dev-ryan
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: dev-ryan-admin
+  namespace: career
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: admin
+subjects:
+  - kind: ServiceAccount
+    name: ryan
+    namespace: dev-ryan
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: dev-ryan-admin
+  namespace: data
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: admin
+subjects:
+  - kind: ServiceAccount
+    name: ryan
+    namespace: dev-ryan
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: dev-ryan-admin
+  namespace: dataroom-dev
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: admin
+subjects:
+  - kind: ServiceAccount
+    name: ryan
+    namespace: dev-ryan
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: dev-ryan-admin
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: admin
+subjects:
+  - kind: ServiceAccount
+    name: ryan
+    namespace: dev-ryan
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: dev-ryan-admin
+  namespace: dev-christian
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: admin
+subjects:
+  - kind: ServiceAccount
+    name: ryan
+    namespace: dev-ryan
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: dev-ryan-admin
+  namespace: dev-ryan
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: admin
+subjects:
+  - kind: ServiceAccount
+    name: ryan
+    namespace: dev-ryan
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: dev-ryan-admin
+  namespace: essence
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: admin
+subjects:
+  - kind: ServiceAccount
+    name: ryan
+    namespace: dev-ryan
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: dev-ryan-admin
+  namespace: finance
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: admin
+subjects:
+  - kind: ServiceAccount
+    name: ryan
+    namespace: dev-ryan
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: dev-ryan-admin
+  namespace: ratel-dev
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: admin
+subjects:
+  - kind: ServiceAccount
+    name: ryan
+    namespace: dev-ryan
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: dev-ryan-admin
+  namespace: ratel-perf
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: admin
+subjects:
+  - kind: ServiceAccount
+    name: ryan
+    namespace: dev-ryan
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: dev-ryan-admin
+  namespace: ratel-prod
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: admin
+subjects:
+  - kind: ServiceAccount
+    name: ryan
+    namespace: dev-ryan
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: dev-ryan-admin
+  namespace: workflows
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: admin
 subjects:
   - kind: ServiceAccount
     name: ryan
