@@ -40,7 +40,7 @@ fi
 # reviews of the same repo must not share it, hence the lock below.
 CLONE_DIR="$SCRIPT_DIR/github/${BASE_REPO##*/}"
 LOCK_DIR="$CLONE_DIR.lock"
-LOCK_WAIT_SECONDS="${LOCK_WAIT_SECONDS:-900}"
+LOCK_WAIT_SECONDS="${LOCK_WAIT_SECONDS:-1800}"
 
 # `rm` is aliased to a trash-mover in .zshrc, which fails silently on paths it
 # cannot move. `command rm` bypasses the alias so cleanup actually happens.
