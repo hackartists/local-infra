@@ -512,7 +512,7 @@ command chflags uchg "${PROFILE_LOCKED[@]}" 2>/dev/null
 PROMPT_FILE="$(mktemp)"
 print -r -- "$REVIEW_PROMPT" > "$PROMPT_FILE"
 typeset -a HERMES_ARGS
-HERMES_ARGS=("${PROFILE_ARGS[@]}" chat -Q --oneshot --yolo --source tool --in "$CLONE_DIR" -t terminal,file --query-file "$PROMPT_FILE")
+HERMES_ARGS=("${PROFILE_ARGS[@]}" chat -Q --oneshot --yolo --source tool --in "$CLONE_DIR" --query-file "$PROMPT_FILE")
 [[ -n "$REVIEW_MODEL" ]] && HERMES_ARGS+=(-m "$REVIEW_MODEL")
 "$HERMES_BIN" "${HERMES_ARGS[@]}" &
 REVIEWER_PID=$!
